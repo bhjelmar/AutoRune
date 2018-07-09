@@ -68,6 +68,7 @@ public class APIWrapper {
 		String line;
 		while ((line = bufferedreader.readLine()) != null) {
 			if(line.contains("LeagueClientUx.exe")) {
+				System.out.println(line);
 				int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
 				int endOfToken = line.indexOf("\"", beginningOfToken);
 				remotingAuthToken = line.substring(beginningOfToken, endOfToken);
