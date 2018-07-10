@@ -19,70 +19,80 @@ public class WindowScraper {
 
 	int hWnd;
 	WindowInfo w;
-	BufferedImage image;
+	Tesseract instance;
 
 	public WindowScraper() {
-//		int hWnd = IUser32.instance.FindWindowA(null, "League of Legends");
-		hWnd = IUser32.instance.FindWindowA(null, "Photos");
+		int hWnd = IUser32.instance.FindWindowA(null, "League of Legends");
+//		hWnd = IUser32.instance.FindWindowA(null, "Photos");
 		w = getWindowInfo(hWnd);
+
+		instance = new Tesseract();
+
+		URL resource = Main.class.getResource("/tessdata");
+		File dataFolder = null;
+		try {
+			dataFolder = Paths.get(resource.toURI()).toFile();
+		} catch(URISyntaxException e) {
+			e.printStackTrace();
+		}
+		instance.setDatapath(dataFolder.getAbsolutePath());
+		instance.setLanguage("eng");
 	}
 
-	public void update() throws AWTException, IOException, URISyntaxException {
+	public void update() {
 		IUser32.instance.SetForegroundWindow(w.hwnd);
-		image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
-
-		File file = captureLoLClient();
-		String result = getImgText(file);
+		BufferedImage image = null;
+		try {
+			image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
+		} catch(AWTException e) {
+			e.printStackTrace();
+		}
+		captureLoLClient(image, true);
+		String result = getImgText(image);
 		System.out.println(result);
 	}
 
-	public String getImgText(File outFile) throws URISyntaxException {
-		Tesseract instance = new Tesseract();
-
-		URL resource = Main.class.getResource("/tessdata");
-		File dataFolder = Paths.get(resource.toURI()).toFile();
-
-		//Set the tessdata path
-		instance.setDatapath(dataFolder.getAbsolutePath());
-		instance.setLanguage("eng");
+	public String getImgText(BufferedImage image) {
 		String result = null;
 		try {
-			result = instance.doOCR(outFile);
+			result = instance.doOCR(image);
 		} catch (TesseractException e) {
 			System.err.println(e.getMessage());
 		}
 		return result;
 	}
 
-	private File captureLoLClient() {
+	private void captureLoLClient(BufferedImage image, boolean saveSnapshot) {
 //		turn all pixels black except the text we care about
+
+//		y: we want 25-60
+//		x we want 560-1040
+
 		for(int w = 0; w < image.getWidth(); w++) {
 			for(int h = 0; h < image.getHeight(); h++) {
 				int p = image.getRGB(w, h);
 
-				int blue = p & 0xff;
-				int green = (p & 0xff00) >> 8;
-				int red = (p & 0xff0000) >> 16;
+				int blue = p & 0xFF;
+				int green = (p & 0xFF00) >> 8;
+				int red = (p & 0xFF0000) >> 16;
+				double percentDeviation = .15;
 //				"F0E6D2" is the color of the champ select text
 //				riot in their infinite wisdom didn't make this text exactly the same color for each champ
-//				this lets us be off by ~13 percent
-//				if(!(((red ^ 0xF0) < 30) && ((green ^ 0xE6) < 30) && ((blue ^ 0xD2) < 30))) {
-//					image.setRGB(w, h, 0);
-//				}
-
-				if(!(((red ^ 0xD8) < 120) && ((green ^ 0xA7) < 120) && ((blue ^ 0x0C) < 120))) {
+				if((h < 25 || h > 60) || (w < 560 || w < 1040)) {
+					image.setRGB(w, h, 0xFF0000);
+				} else if(!(((red ^ 0xF0) < (0xFF * percentDeviation)) && ((green ^ 0xE6) < (0xFF * percentDeviation)) && ((blue ^ 0xD2) < (0xFF * percentDeviation)))) { // for whiteish text
 					image.setRGB(w, h, 0);
 				}
 			}
 		}
-		File outFile = null;
-		try{
-			outFile = new File("temp.png");
-			ImageIO.write(image, "png", outFile);
-		} catch(IOException e){
-			e.printStackTrace();
+		if(saveSnapshot) {
+			try {
+				File outFile = new File("temp.png");
+				ImageIO.write(image, "png", outFile);
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
 		}
-		return outFile;
 	}
 
 	public static WindowInfo getWindowInfo(int hWnd) {

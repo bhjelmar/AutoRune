@@ -130,7 +130,7 @@ public class APIWrapper {
 		return runeTrees;
 	}
 
-	public void getChampSkinList() throws IOException {
+	public void getChampSkinList(Map<Integer, Champion> idChampionMap, Map<String, Integer> skinIdMap) throws IOException {
 		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/championFull.json";
 		StringBuffer result = makeHTTPCall(stringUrl);
 		JSONObject jsonObject = new JSONObject(result.toString());
@@ -139,25 +139,29 @@ public class APIWrapper {
 		while(keys.hasNext()) {
 			Object key = keys.next();
 			JSONObject value = champions.getJSONObject((String) key);
-			String name = value.getString("name");
-			String id = value.getString("key");
 			JSONArray skins = (JSONArray) value.get("skins");
+			int id = Integer.parseInt(value.getString("key"));
+			String name = (value.getString("name"));
 			List<String> skinsArray = new ArrayList<>();
-			for(Object o : skins) {
-				if(o instanceof JSONObject) {
-					JSONObject skin = (JSONObject) o;
+			for(Object skinObject : skins) {
+				if(skinObject instanceof JSONObject) {
+					JSONObject skin = (JSONObject) skinObject;
 					String skinName = skin.getString("name");
 					if(!skinName.equals("default")) {
 						skinsArray.add(skinName);
+						skinIdMap.put(skinName, id);
 					}
 				}
 			}
-			System.out.println(name + " " + id);
-			System.out.println("\t" + skinsArray);
+			Champion champion = new Champion();
+			champion.setChampionId(id);
+			champion.setName(name);
+			champion.setSkins(skinsArray);
+			idChampionMap.put(id, champion);
 		}
 	}
 
-	public void getDDragonAllChamps(List<Champion> champions) throws IOException {
+	public void getCGGRunes(Map<Integer, Champion> idChampionMap) throws IOException {
 		String stringUrl = "http://api.champion.gg/v2/champions?champData=hashes&limit=1000&api_key=" + cggAPIKey;
 		StringBuffer result = makeHTTPCall(stringUrl);
 		JSONArray jsonArray = new JSONArray(result.toString());
@@ -165,7 +169,7 @@ public class APIWrapper {
 			if(o instanceof JSONObject) {
 				JSONObject champJSONObject = (JSONObject) o;
 				JSONObject _id = (JSONObject) champJSONObject.get("_id");
-				int championId = (int) _id.get("championId");
+				int id = (int) _id.get("championId");
 				String role = (String) _id.get("role");
 				role = role.equals("DUO_CARRY") ? "ADC" : role;
 				role = role.equals("DUO_SUPPORT") ? "SUPPORT" : role;
@@ -173,10 +177,11 @@ public class APIWrapper {
 					JSONObject runehash = (JSONObject) ((JSONObject) champJSONObject.get("hashes")).get("runehash");
 					List<String> highestCount = Arrays.asList(((String) ((JSONObject) runehash.get("highestCount")).get("hash")).split("-"));
 					List<String> highestWinrate = Arrays.asList(((String) ((JSONObject) runehash.get("highestWinrate")).get("hash")).split("-"));
-					Champion champion = new Champion(championId, role, highestCount, highestWinrate, null, null);
-					champions.add(champion);
+					Champion champion = idChampionMap.get(id);
+					champion.addToMostFrequentRuneRoleMap(role, highestCount);
+					champion.addToHighestWinRuneRoleMap(role, highestWinrate);
 				} catch (Exception e) {
-					System.out.println("no rune data for " + championId + " " + role);
+					System.out.println("no rune data for " + id + " " + role);
 				}
 			}
 		}
