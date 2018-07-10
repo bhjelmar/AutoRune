@@ -13,9 +13,12 @@ import javax.imageio.ImageIO;
 import com.sun.jna.Native;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import org.apache.log4j.Logger;
 import sample.Main;
 
 public class WindowScraper {
+
+	private final Logger LOGGER = Logger.getLogger(this.getClass());
 
 	int hWnd;
 	WindowInfo w;

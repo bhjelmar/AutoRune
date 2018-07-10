@@ -2,20 +2,19 @@ package sample;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import org.apache.log4j.Logger;
 import sample.DDragon.Champion;
-import sample.imgcap.WindowScraper;
+import sample.api.APIWrapper;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Main extends Application {
 
+	private static final Logger logger = Logger.getLogger(Main.class);
+
 	private static final SimpleDateFormat FORMATTER = new SimpleDateFormat("dd-MM-yyyy");
-
-
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -28,19 +27,11 @@ public class Main extends Application {
 //		windowScraper.update();
 
 	    APIWrapper apiWrapper = new APIWrapper();
-	    Map<Integer, Champion> idChampionMap = new HashMap<>();
-	    Map<String, Integer> skinIdMap = new HashMap<>();
-	    apiWrapper.getChampSkinList(idChampionMap, skinIdMap);
-	    apiWrapper.getCGGRunes(idChampionMap);
+	    apiWrapper.updateData();
 
-//	    for(Integer id : idChampionMap.keySet()) {
-//			System.out.println(idChampionMap.get(id));
-//		}
+		Champion champion = apiWrapper.getChampionBySkinName("Zed");
 
-		int champId = skinIdMap.get("PROJECT: Zed");
-		Champion champ = idChampionMap.get(champId);
-
-		System.out.println(champ);
+		System.out.println(champion);
     }
 
     public static void main(String[] args) {

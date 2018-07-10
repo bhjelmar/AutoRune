@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Data @NoArgsConstructor
-public class Champion {
+public class Champion implements Serializable {
 
 //	Data from http://ddragon.leagueoflegends.com/cdn/LOL_VERSION/data/en_US/championFull.json
 	private int championId;
