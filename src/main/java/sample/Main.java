@@ -2,9 +2,12 @@ package sample;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import sample.DDragon.Champion;
 import sample.imgcap.WindowScraper;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main extends Application {
 
@@ -19,8 +22,13 @@ public class Main extends Application {
 //        primaryStage.setScene(new Scene(root, 300, 275));
 //        primaryStage.show();
 
-		WindowScraper windowScraper = new WindowScraper();
-		windowScraper.update();
+//		WindowScraper windowScraper = new WindowScraper();
+//		windowScraper.update();
+
+	    APIWrapper apiWrapper = new APIWrapper();
+//	    List<Champion> championList = new ArrayList<>();
+	    apiWrapper.getChampSkinList();
+
     }
 
     public static void main(String[] args) {

@@ -2,6 +2,7 @@ package sample;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import sample.DDragon.Champion;
 import sample.data.Rune;
 import sample.data.RuneTree;
 
@@ -16,10 +17,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 /*
 always show last date of data fetch with update button beside
@@ -51,6 +49,8 @@ eventlistener for champion lock in:
 
 public class APIWrapper {
 
+	private static final String cggAPIKey = "5ba6c2b143952b70050ef6c312584c96";
+
 	String remotingAuthToken;
 	String port;
 	String pid;
@@ -61,35 +61,40 @@ public class APIWrapper {
 		createFakeTrustManager();
 
 		Runtime runtime = Runtime.getRuntime();
-		Process proc = runtime.exec("wmic process where name='leagueclientux.exe' get commandline");
-		InputStream inputstream = proc.getInputStream();
-		InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
-		BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
-		String line;
-		while ((line = bufferedreader.readLine()) != null) {
-			if(line.contains("LeagueClientUx.exe")) {
-				System.out.println(line);
-				int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
-				int endOfToken = line.indexOf("\"", beginningOfToken);
-				remotingAuthToken = line.substring(beginningOfToken, endOfToken);
-
-				int beginningOfPort = line.indexOf("--app-port=") + "--app-port=".length();
-				int endOfPort = line.indexOf("\"", beginningOfPort);
-				port = line.substring(beginningOfPort, endOfPort);
-
-				int beginningOfPid = line.indexOf("--app-pid=") + "--app-pid=".length();
-				int endOfPid = line.indexOf("\"", beginningOfPid);
-				pid = line.substring(beginningOfPid, endOfPid);
-			}
+		Process proc = null;
+		try {
+			currentLOLVersion = getCurrentLOLVersion();
+//			proc = runtime.exec("wmic process where name='leagueclientux.exe' get commandline");
+//			InputStream inputstream = proc.getInputStream();
+//			InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+//			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
+//			String line;
+//			while ((line = bufferedreader.readLine()) != null) {
+//				if(line.contains("LeagueClientUx.exe")) {
+//					System.out.println(line);
+//					int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
+//					int endOfToken = line.indexOf("\"", beginningOfToken);
+//					remotingAuthToken = line.substring(beginningOfToken, endOfToken);
+//
+//					int beginningOfPort = line.indexOf("--app-port=") + "--app-port=".length();
+//					int endOfPort = line.indexOf("\"", beginningOfPort);
+//					port = line.substring(beginningOfPort, endOfPort);
+//
+//					int beginningOfPid = line.indexOf("--app-pid=") + "--app-pid=".length();
+//					int endOfPid = line.indexOf("\"", beginningOfPid);
+//					pid = line.substring(beginningOfPid, endOfPid);
+//				}
+//			}
+//			if(pid == null) {
+//				throw new Exception("Cannot find LeagueClientUx pid. Is league process running?");
+//			} else if(remotingAuthToken == null) {
+//				throw new Exception("Cannot find LeagueClientUx remoting-auth-token.");
+//			} else if(port == null) {
+//				throw new Exception("Cannot find LeagueClientUx port.");
+//			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		if(pid == null) {
-			throw new Exception("Cannot find LeagueClientUx pid. Is league process running?");
-		} else if(remotingAuthToken == null) {
-			throw new Exception("Cannot find LeagueClientUx remoting-auth-token.");
-		} else if(port == null) {
-			throw new Exception("Cannot find LeagueClientUx port.");
-		}
-		currentLOLVersion = getCurrentLOLVersion();
 	}
 
 	public List<RuneTree> getAllRunes() throws IOException {
@@ -123,6 +128,58 @@ public class APIWrapper {
 
 		System.out.println(runeTrees);
 		return runeTrees;
+	}
+
+	public void getChampSkinList() throws IOException {
+		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/championFull.json";
+		StringBuffer result = makeHTTPCall(stringUrl);
+		JSONObject jsonObject = new JSONObject(result.toString());
+		JSONObject champions = (JSONObject) jsonObject.get("data");
+		Iterator keys = champions.keys();
+		while(keys.hasNext()) {
+			Object key = keys.next();
+			JSONObject value = champions.getJSONObject((String) key);
+			String name = value.getString("name");
+			String id = value.getString("key");
+			JSONArray skins = (JSONArray) value.get("skins");
+			List<String> skinsArray = new ArrayList<>();
+			for(Object o : skins) {
+				if(o instanceof JSONObject) {
+					JSONObject skin = (JSONObject) o;
+					String skinName = skin.getString("name");
+					if(!skinName.equals("default")) {
+						skinsArray.add(skinName);
+					}
+				}
+			}
+			System.out.println(name + " " + id);
+			System.out.println("\t" + skinsArray);
+		}
+	}
+
+	public void getDDragonAllChamps(List<Champion> champions) throws IOException {
+		String stringUrl = "http://api.champion.gg/v2/champions?champData=hashes&limit=1000&api_key=" + cggAPIKey;
+		StringBuffer result = makeHTTPCall(stringUrl);
+		JSONArray jsonArray = new JSONArray(result.toString());
+		for(Object o : jsonArray) {
+			if(o instanceof JSONObject) {
+				JSONObject champJSONObject = (JSONObject) o;
+				JSONObject _id = (JSONObject) champJSONObject.get("_id");
+				int championId = (int) _id.get("championId");
+				String role = (String) _id.get("role");
+				role = role.equals("DUO_CARRY") ? "ADC" : role;
+				role = role.equals("DUO_SUPPORT") ? "SUPPORT" : role;
+				try {
+					JSONObject runehash = (JSONObject) ((JSONObject) champJSONObject.get("hashes")).get("runehash");
+					List<String> highestCount = Arrays.asList(((String) ((JSONObject) runehash.get("highestCount")).get("hash")).split("-"));
+					List<String> highestWinrate = Arrays.asList(((String) ((JSONObject) runehash.get("highestWinrate")).get("hash")).split("-"));
+					Champion champion = new Champion(championId, role, highestCount, highestWinrate, null, null);
+					champions.add(champion);
+				} catch (Exception e) {
+					System.out.println("no rune data for " + championId + " " + role);
+				}
+			}
+		}
 	}
 
 	public String getCurrentLOLVersion() throws IOException {
