@@ -5,7 +5,8 @@ import lombok.Data;
 
 import java.io.Serializable;
 
-@Data @AllArgsConstructor
+@Data
+@AllArgsConstructor
 public class Rune implements Serializable {
 
 	private String name;

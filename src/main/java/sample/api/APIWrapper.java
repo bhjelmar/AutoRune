@@ -48,10 +48,8 @@ eventlistener for champion lock in:
 
 public class APIWrapper {
 
-	private final Logger logger = Logger.getLogger(this.getClass());
-
 	private static final String cggAPIKey = "5ba6c2b143952b70050ef6c312584c96";
-
+	private final Logger logger = Logger.getLogger(this.getClass());
 	private String remotingAuthToken;
 	private String port;
 	private String pid;
@@ -76,7 +74,7 @@ public class APIWrapper {
 			InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
 			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
 			String line;
-			while ((line = bufferedreader.readLine()) != null) {
+			while((line = bufferedreader.readLine()) != null) {
 				if(line.contains("LeagueClientUx.exe")) {
 					int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
 					int endOfToken = line.indexOf("\"", beginningOfToken);
@@ -98,7 +96,7 @@ public class APIWrapper {
 			} else if(port == null) {
 				logger.error("Cannot find LeagueClientUx port.");
 			}
-		} catch (IOException e) {
+		} catch(IOException e) {
 			logger.error(e.getLocalizedMessage());
 		}
 	}
@@ -173,7 +171,7 @@ public class APIWrapper {
 		StringBuffer result = makeHTTPCall(stringUrl);
 		JSONArray jsonArray = new JSONArray(result.toString());
 
-		for(Object runeTreeTemp : jsonArray){
+		for(Object runeTreeTemp : jsonArray) {
 			if(runeTreeTemp instanceof JSONObject) {
 				JSONObject runeTreeJSONObject = (JSONObject) runeTreeTemp;
 				JSONArray slots = (JSONArray) runeTreeJSONObject.get("slots");
@@ -253,7 +251,7 @@ public class APIWrapper {
 					List<String> highestWinrate = Arrays.asList(((String) ((JSONObject) runehash.get("highestWinrate")).get("hash")).split("-"));
 					champion.addToMostFrequentRuneRoleMap(role, highestCount);
 					champion.addToHighestWinRuneRoleMap(role, highestWinrate);
-				} catch (Exception e) {
+				} catch(Exception e) {
 					logger.info("no rune data for " + champion.getName() + " " + role);
 				}
 			}
@@ -286,7 +284,7 @@ public class APIWrapper {
 				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 				String inputLine;
 				content = new StringBuffer();
-				while ((inputLine = in.readLine()) != null) {
+				while((inputLine = in.readLine()) != null) {
 					content.append(inputLine);
 				}
 				in.close();
@@ -301,19 +299,25 @@ public class APIWrapper {
 
 	private void createFakeTrustManager() {
 		// Create a trust manager that does not validate certificate chains
-		TrustManager[] trustAllCerts = new TrustManager[]{
-			new X509TrustManager() {
-				public X509Certificate[] getAcceptedIssuers() { return null; }
-				public void checkClientTrusted(X509Certificate[] certs, String authType) { }
-				public void checkServerTrusted(X509Certificate[] certs, String authType) { }
-			}
+		TrustManager[] trustAllCerts = new TrustManager[] {
+				new X509TrustManager() {
+					public X509Certificate[] getAcceptedIssuers() {
+						return null;
+					}
+
+					public void checkClientTrusted(X509Certificate[] certs, String authType) {
+					}
+
+					public void checkServerTrusted(X509Certificate[] certs, String authType) {
+					}
+				}
 		};
 		// Install the all-trusting trust manager
 		try {
 			SSLContext sc = SSLContext.getInstance("SSL");
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
 			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-		} catch (Exception e) {
+		} catch(Exception e) {
 			logger.error(e.getLocalizedMessage());
 		}
 	}

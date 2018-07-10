@@ -6,7 +6,8 @@ import lombok.Data;
 import java.io.Serializable;
 import java.util.List;
 
-@Data @AllArgsConstructor
+@Data
+@AllArgsConstructor
 public class RuneTree implements Serializable {
 
 	private String name;

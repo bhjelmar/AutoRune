@@ -10,6 +10,7 @@ public interface IUser32 extends StdCallLibrary {
 	public static final int MIN_ALL_UNDO = 0x1a0;
 
 	final IUser32 instance = (IUser32) Native.loadLibrary("user32", IUser32.class);
+	final int GW_HWNDNEXT = 2;
 
 	boolean EnumWindows(IWndEnumProc wndenumproc, int lParam);
 
@@ -34,6 +35,4 @@ public interface IUser32 extends StdCallLibrary {
 	int FindWindowA(String winClass, String title);
 
 	long SendMessageA(int hWnd, int msg, int num1, int num2);
-
-	final int GW_HWNDNEXT = 2;
 }

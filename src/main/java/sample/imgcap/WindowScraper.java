@@ -1,5 +1,12 @@
 package sample.imgcap;
 
+import com.sun.jna.Native;
+import net.sourceforge.tess4j.Tesseract;
+import net.sourceforge.tess4j.TesseractException;
+import org.apache.log4j.Logger;
+import sample.Main;
+
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -7,14 +14,6 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-
-import javax.imageio.ImageIO;
-
-import com.sun.jna.Native;
-import net.sourceforge.tess4j.Tesseract;
-import net.sourceforge.tess4j.TesseractException;
-import org.apache.log4j.Logger;
-import sample.Main;
 
 public class WindowScraper {
 
@@ -42,6 +41,16 @@ public class WindowScraper {
 		instance.setLanguage("eng");
 	}
 
+	public static WindowInfo getWindowInfo(int hWnd) {
+		RECT r = new RECT();
+		IUser32.instance.GetWindowRect(hWnd, r);
+		byte[] buffer = new byte[1024];
+		IUser32.instance.GetWindowTextA(hWnd, buffer, buffer.length);
+		String title = Native.toString(buffer);
+		WindowInfo info = new WindowInfo(hWnd, r, title);
+		return info;
+	}
+
 	public void update() {
 		IUser32.instance.SetForegroundWindow(w.hwnd);
 		BufferedImage image = null;
@@ -59,7 +68,7 @@ public class WindowScraper {
 		String result = null;
 		try {
 			result = instance.doOCR(image);
-		} catch (TesseractException e) {
+		} catch(TesseractException e) {
 			System.err.println(e.getMessage());
 		}
 		return result;
@@ -96,16 +105,6 @@ public class WindowScraper {
 				e.printStackTrace();
 			}
 		}
-	}
-
-	public static WindowInfo getWindowInfo(int hWnd) {
-		RECT r = new RECT();
-		IUser32.instance.GetWindowRect(hWnd, r);
-		byte[] buffer = new byte[1024];
-		IUser32.instance.GetWindowTextA(hWnd, buffer, buffer.length);
-		String title = Native.toString(buffer);
-		WindowInfo info = new WindowInfo(hWnd, r, title);
-		return info;
 	}
 
 }
