@@ -5,6 +5,7 @@ import javafx.stage.Stage;
 import org.apache.log4j.Logger;
 import sample.DDragon.Champion;
 import sample.api.APIWrapper;
+import sample.imgcap.WindowScraper;
 
 import java.text.SimpleDateFormat;
 
@@ -25,14 +26,14 @@ public class Main extends Application {
 //        primaryStage.setScene(new Scene(root, 300, 275));
 //        primaryStage.show();
 
-//		WindowScraper windowScraper = new WindowScraper();
-//		windowScraper.update();
+		WindowScraper windowScraper = new WindowScraper();
+		String champSkinName = windowScraper.update();
 
 		APIWrapper apiWrapper = new APIWrapper();
-		apiWrapper.updateData();
+		if(apiWrapper.updateData()) {
+			Champion champion = apiWrapper.getChampionBySkinName(champSkinName);
+			System.out.println(champion);
+		}
 
-		Champion champion = apiWrapper.getChampionBySkinName("Zed");
-
-		System.out.println(champion);
 	}
 }

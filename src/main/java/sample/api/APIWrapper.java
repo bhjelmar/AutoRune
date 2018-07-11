@@ -13,6 +13,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -146,10 +147,10 @@ public class APIWrapper {
 		}
 	}
 
-	private <T> T deserializeData(String name) {
+	private <T> T deserializeData(String fileName) {
 		T obj;
 		try {
-			FileInputStream fis = new FileInputStream(name);
+			FileInputStream fis = new FileInputStream(fileName);
 			ObjectInputStream ois = new ObjectInputStream(fis);
 			obj = (T) ois.readObject();
 			ois.close();
@@ -161,7 +162,7 @@ public class APIWrapper {
 			logger.error(e.getLocalizedMessage());
 			return null;
 		}
-		logger.info("Deserialized " + name + " successfully.");
+		logger.info("Deserialized " + fileName + " successfully.");
 		return obj;
 	}
 
