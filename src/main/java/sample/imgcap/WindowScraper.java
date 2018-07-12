@@ -6,6 +6,7 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.log4j.Logger;
 import sample.Main;
+import sample.api.APIWrapper;
 
 import javax.imageio.ImageIO;
 import java.awt.Rectangle;
@@ -21,6 +22,8 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import java.util.List;
+
+//luxrmux
 
 public class WindowScraper {
 
@@ -64,17 +67,21 @@ public class WindowScraper {
 		try {
 			image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
 		} catch(AWTException e) {
-			e.printStackTrace();
+			logger.error(e.getLocalizedMessage());
 		}
 		captureLoLClient(image, true);
 		String result = getImgText(image);
 		List<String> list = Arrays.asList(result.split("\\s+"));
 
 //		[CHOOSE, YOUR, LOADOUT!, champName]
+		if(list.get(3) == null) {
+			return null;
+		}
 		return list.get(3);
 	}
 
 	public String getImgText(BufferedImage image) {
+		logger.info("Attempting to read champion text from screen.");
 		String result = null;
 		try {
 			result = instance.doOCR(image);
@@ -116,7 +123,7 @@ public class WindowScraper {
 				int blue = p & 0xFF;
 				int green = (p & 0xFF00) >> 8;
 				int red = (p & 0xFF0000) >> 16;
-				double percentDeviation = .15;
+				double percentDeviation = .35;
 //				"F0E6D2" is the color of the champ select text
 //				riot in their infinite wisdom didn't make this text exactly the same color for each champ
 				if(!chooseYourLoadoutRect.pointLiesInRect(w, h) && !champSkinNameRect.pointLiesInRect(w, h)) {
