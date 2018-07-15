@@ -71,7 +71,7 @@ public class APIWrapper {
 			currentLOLVersion = getCurrentLOLVersion();
 			Process proc = runtime.exec(System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
 			InputStream inputstream = proc.getInputStream();
-			InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
+			InputStreamReader inputstreamreader = new InputStreamReader(inputstream, "UTF-8");
 			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
 			String line;
 			while((line = bufferedreader.readLine()) != null) {
@@ -96,6 +96,7 @@ public class APIWrapper {
 			} else if(port == null) {
 				logger.error("Cannot find LeagueClientUx port.");
 			}
+			bufferedreader.close();
 		} catch(IOException e) {
 			logger.error(e.getLocalizedMessage());
 		}
@@ -281,7 +282,7 @@ public class APIWrapper {
 				String encoded = Base64.getEncoder().encodeToString(("riot" + ":" + remotingAuthToken).getBytes(StandardCharsets.UTF_8));
 				con.setRequestProperty("Authorization", "Basic " + encoded);
 
-				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 				String inputLine;
 				content = new StringBuffer();
 				while((inputLine = in.readLine()) != null) {

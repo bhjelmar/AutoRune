@@ -35,11 +35,11 @@ public class WindowScraper {
 		File dataFolder = null;
 		try {
 			dataFolder = Paths.get(resource.toURI()).toFile();
+			instance.setDatapath(dataFolder.getAbsolutePath());
+			instance.setLanguage("eng");
 		} catch(URISyntaxException e) {
 			e.printStackTrace();
 		}
-		instance.setDatapath(dataFolder.getAbsolutePath());
-		instance.setLanguage("eng");
 	}
 
 	public static WindowInfo getWindowInfo(int hWnd) {
