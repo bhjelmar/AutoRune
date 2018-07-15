@@ -60,8 +60,13 @@ public class WindowScraper {
 		} catch(AWTException e) {
 			logger.error(e.getLocalizedMessage());
 		}
-		captureLoLClient(image, true);
-		String result = getImgText(image);
+		String result;
+		if(captureLoLClient(image, false)) {
+			result = getImgText(image);
+		} else {
+//			System.out.println("not getting text");
+			return "";
+		}
 
 		if(!result.startsWith("CHOOSE YOUR LOADOUT!")) {
 			return "";
@@ -81,7 +86,7 @@ public class WindowScraper {
 		return result;
 	}
 
-	private void captureLoLClient(BufferedImage image, boolean saveSnapshot) {
+	private boolean captureLoLClient(BufferedImage image, boolean saveSnapshot) {
 		@AllArgsConstructor
 		class Rect {
 //			a---
@@ -106,6 +111,7 @@ public class WindowScraper {
 		Rect chooseYourLoadoutRect = new Rect(560, 25, 1035, 55);
 		Rect champSkinNameRect = new Rect(400, 568, 1200, 610);
 
+		int allPixeBlack = 0;
 		for(int w = 0; w < image.getWidth(); w++) {
 			for(int h = 0; h < image.getHeight(); h++) {
 				int p = image.getRGB(w, h);
@@ -116,10 +122,10 @@ public class WindowScraper {
 				double percentDeviation = .35;
 //				"F0E6D2" is the color of the champ select text
 //				riot in their infinite wisdom didn't make this text exactly the same color for each champ
-				if(!chooseYourLoadoutRect.pointLiesInRect(w, h) && !champSkinNameRect.pointLiesInRect(w, h)) {
+				if(!chooseYourLoadoutRect.pointLiesInRect(w, h) && !champSkinNameRect.pointLiesInRect(w, h) ||
+						!(((red ^ 0xF0) < (0xFF * percentDeviation)) && ((green ^ 0xE6) < (0xFF * percentDeviation)) && ((blue ^ 0xD2) < (0xFF * percentDeviation)))) {
 					image.setRGB(w, h, 0x000000);
-				} else if(!(((red ^ 0xF0) < (0xFF * percentDeviation)) && ((green ^ 0xE6) < (0xFF * percentDeviation)) && ((blue ^ 0xD2) < (0xFF * percentDeviation)))) { // for whiteish text
-					image.setRGB(w, h, 0);
+					allPixeBlack++;
 				}
 			}
 		}
@@ -132,6 +138,9 @@ public class WindowScraper {
 				e.printStackTrace();
 			}
 		}
+
+		double percentagePixelsBlack = (allPixeBlack * 1.0 / (image.getWidth() * image.getHeight() * 1.0) * 100.0);
+		return percentagePixelsBlack < 99.74;
 	}
 
 }

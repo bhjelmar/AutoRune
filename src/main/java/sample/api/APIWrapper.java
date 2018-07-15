@@ -1,11 +1,13 @@
 package sample.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import sample.DDragon.Champion;
+import sample.data.Champion;
 import sample.data.Rune;
+import sample.data.RunePage;
 import sample.data.RuneTree;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -166,10 +168,23 @@ public class APIWrapper {
 		return obj;
 	}
 
+	public List<RunePage> getPages() {
+		StringBuffer stringBuffer = makeHTTPCall("https://127.0.0.1:" + port + "/lol-perks/v1/pages", "GET");
+		ObjectMapper mapper = new ObjectMapper();
+		List<RunePage> pageList = null;
+		try {
+			pageList = mapper.readValue(stringBuffer.toString(), mapper.getTypeFactory().constructCollectionType(
+					List.class, RunePage.class));
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return pageList;
+	}
+
 	private void getAllRunes() {
 		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/runesReforged.json";
 		logger.info("Getting rune information from Riot: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl);
+		StringBuffer result = makeHTTPCall(stringUrl, "GET");
 		JSONArray jsonArray = new JSONArray(result.toString());
 
 		for(Object runeTreeTemp : jsonArray) {
@@ -201,7 +216,7 @@ public class APIWrapper {
 	private void getChampSkinList() {
 		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/championFull.json";
 		logger.info("Getting champion skin list from Riot: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl);
+		StringBuffer result = makeHTTPCall(stringUrl, "GET");
 		JSONObject jsonObject = new JSONObject(result.toString());
 		JSONObject champions = (JSONObject) jsonObject.get("data");
 
@@ -235,7 +250,7 @@ public class APIWrapper {
 	private void getCGGRunes() {
 		String stringUrl = "http://api.champion.gg/v2/champions?champData=hashes&limit=1000&api_key=" + cggAPIKey;
 		logger.info("Getting rune information from champion.gg's API: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl);
+		StringBuffer result = makeHTTPCall(stringUrl, "GET");
 		JSONArray jsonArray = new JSONArray(result.toString());
 		for(Object o : jsonArray) {
 			if(o instanceof JSONObject) {
@@ -261,7 +276,7 @@ public class APIWrapper {
 
 	private String getCurrentLOLVersion() throws IOException {
 		String stringUrl = "https://ddragon.leagueoflegends.com/api/versions.json";
-		StringBuffer result = makeHTTPCall(stringUrl);
+		StringBuffer result = makeHTTPCall(stringUrl, "GET");
 		List<String> items = Arrays.asList(result.toString().replaceAll("\"", "").replaceAll("^.|.$", "").split("\\s*,\\s*"));
 		if(items.get(0) == null) {
 			logger.error("could not get current LoL version");
@@ -270,13 +285,13 @@ public class APIWrapper {
 		return items.get(0);
 	}
 
-	private StringBuffer makeHTTPCall(String stringUrl) {
+	private StringBuffer makeHTTPCall(String stringUrl, String method) {
 		StringBuffer content = null;
 		try {
 			URL url = new URL(stringUrl);
 			try {
 				HttpURLConnection con = (HttpURLConnection) url.openConnection();
-				con.setRequestMethod("GET");
+				con.setRequestMethod(method);
 
 //				TODO: this is a bit lazy...
 				String encoded = Base64.getEncoder().encodeToString(("riot" + ":" + remotingAuthToken).getBytes(StandardCharsets.UTF_8));

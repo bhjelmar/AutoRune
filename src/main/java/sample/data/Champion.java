@@ -1,4 +1,4 @@
-package sample.DDragon;
+package sample.data;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
