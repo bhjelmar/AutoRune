@@ -13,7 +13,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -70,7 +69,7 @@ public class APIWrapper {
 		Runtime runtime = Runtime.getRuntime();
 		try {
 			currentLOLVersion = getCurrentLOLVersion();
-			Process proc = runtime.exec("wmic process where name='leagueclientux.exe' get commandline");
+			Process proc = runtime.exec(System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
 			InputStream inputstream = proc.getInputStream();
 			InputStreamReader inputstreamreader = new InputStreamReader(inputstream);
 			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);

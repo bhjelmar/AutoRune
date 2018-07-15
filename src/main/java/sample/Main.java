@@ -30,7 +30,7 @@ public class Main extends Application {
 
 		WindowScraper windowScraper = new WindowScraper();
 		String approxChampName = windowScraper.update();
-		if(approxChampName != null) {
+		if(!approxChampName.equals("")) {
 			logger.info("Name scraped from screenshot: " + approxChampName);
 			Champion champion = null;
 			if(apiWrapper.updateData()) {

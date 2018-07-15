@@ -6,24 +6,15 @@ import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.log4j.Logger;
 import sample.Main;
-import sample.api.APIWrapper;
 
 import javax.imageio.ImageIO;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.AWTException;
-
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Arrays;
-
-import java.util.List;
-
-//luxrmux
 
 public class WindowScraper {
 
@@ -71,13 +62,12 @@ public class WindowScraper {
 		}
 		captureLoLClient(image, true);
 		String result = getImgText(image);
-		List<String> list = Arrays.asList(result.split("\\s+"));
 
-//		[CHOOSE, YOUR, LOADOUT!, champName]
-		if(list.get(3) == null) {
-			return null;
+		if(!result.startsWith("CHOOSE YOUR LOADOUT!")) {
+			return "";
 		}
-		return list.get(3);
+
+		return result.replaceAll("\n", "").substring("CHOOSE YOUR LOADOUT!".length());
 	}
 
 	public String getImgText(BufferedImage image) {
