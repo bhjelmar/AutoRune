@@ -2,6 +2,7 @@ package sample.imgcap;
 
 import com.sun.jna.Native;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.log4j.Logger;
@@ -16,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
 
+@Data
 public class WindowScraper {
 
 	private final Logger logger = Logger.getLogger(this.getClass());
@@ -25,10 +27,6 @@ public class WindowScraper {
 	Tesseract instance;
 
 	public WindowScraper() {
-		hWnd = IUser32.instance.FindWindowA(null, "League of Legends");
-//		hWnd = IUser32.instance.FindWindowA(null, "Photos");
-		w = getWindowInfo(hWnd);
-
 		instance = new Tesseract();
 
 		URL resource = Main.class.getResource("/tessdata");
@@ -37,9 +35,15 @@ public class WindowScraper {
 			dataFolder = Paths.get(resource.toURI()).toFile();
 			instance.setDatapath(dataFolder.getAbsolutePath());
 			instance.setLanguage("eng");
+//			instance.setTessVariable("tessedit_char_whitelist", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!'");
 		} catch(URISyntaxException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void findLoLWindow() {
+		hWnd = IUser32.instance.FindWindowA(null, "League of Legends");
+		w = getWindowInfo(hWnd);
 	}
 
 	public static WindowInfo getWindowInfo(int hWnd) {
@@ -80,6 +84,7 @@ public class WindowScraper {
 		String result = null;
 		try {
 			result = instance.doOCR(image);
+			System.out.println(result);
 		} catch(TesseractException e) {
 			System.err.println(e.getMessage());
 		}
@@ -92,7 +97,7 @@ public class WindowScraper {
 //			a---
 //			|  |
 //			---b
-			int a_x;
+int a_x;
 			int a_y;
 			int b_x;
 			int b_y;

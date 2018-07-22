@@ -28,59 +28,69 @@ public class Main extends Application {
 //        primaryStage.setScene(new Scene(root, 300, 275));
 //        primaryStage.show();
 
+		WindowScraper windowScraper = new WindowScraper();
 		APIWrapper apiWrapper = new APIWrapper();
-		apiWrapper.updateData();
-		while(true) {
-			Thread.sleep(1000);
-			WindowScraper windowScraper = new WindowScraper();
-			String approxChampName = windowScraper.update();
-			if(!approxChampName.equals("")) {
-				logger.info("Name scraped from screenshot: " + approxChampName);
-				Champion champion = apiWrapper.getChampionBySkinName(approxChampName);
-				if(champion == null) {
-					logger.info("Cannot find champion with name: " + approxChampName);
-					int minLevenshteinDistance = Integer.MAX_VALUE;
-					String closestChampionName = null;
-					for(String champName : apiWrapper.getSkinIdMap().keySet()) {
-						int currLevenshteinDistance = StringUtils.getLevenshteinDistance(champName, approxChampName);
-						if(currLevenshteinDistance < minLevenshteinDistance) {
-							minLevenshteinDistance = currLevenshteinDistance;
-							closestChampionName = champName;
+		if(apiWrapper.getAPIData()) {
+			while(true) {
+				Thread.sleep(1000);
+				windowScraper.findLoLWindow();
+				if(windowScraper.getHWnd() != 0) {
+					apiWrapper.setLoLClientInfo();
+					String approxChampName = windowScraper.update();
+					if(!approxChampName.equals("")) {
+						logger.info("Name scraped from screenshot: " + approxChampName);
+						Champion champion = apiWrapper.getChampionBySkinName(approxChampName);
+						if(champion == null) {
+							logger.info("Cannot find champion with name: " + approxChampName);
+							int minLevenshteinDistance = Integer.MAX_VALUE;
+							String closestChampionName = null;
+							for(String champName : apiWrapper.getSkinIdMap().keySet()) {
+								int currLevenshteinDistance = StringUtils.getLevenshteinDistance(champName, approxChampName);
+								if(currLevenshteinDistance < minLevenshteinDistance) {
+									minLevenshteinDistance = currLevenshteinDistance;
+									closestChampionName = champName;
+								}
+							}
+							logger.info("Closest match to " + approxChampName + " is " + closestChampionName);
+							champion = apiWrapper.getChampionBySkinName(closestChampionName);
+						} else {
+							champion = apiWrapper.getChampionBySkinName(approxChampName);
+						}
+
+						logger.info("Found champion info: " + champion);
+
+						List<RunePage> runePageList = apiWrapper.getPages();
+						RunePage apiPage = runePageList.stream().filter(o -> o.getName().equalsIgnoreCase("AutoRune")).findFirst().orElse(null);
+						if(apiPage != null) {
+							Set<String> roles = champion.getHighestWinRoleRuneMap().keySet();
+							String role = roles.iterator().next();
+
+							List<String> runes = champion.getHighestWinRoleRuneMap().get(role);
+							apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+							apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+							List<Integer> selectedPerkIds = new ArrayList<>();
+							selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+							apiPage.setSelectedPerkIds(selectedPerkIds);
+
+							System.out.println(champion);
+							System.out.println(apiPage);
+
+							apiWrapper.replacePage(apiPage.getId(), apiPage);
+
+							return;
+						} else {
+							logger.error("Cannot find rune page named AutoRune. Please create page.");
 						}
 					}
-					logger.info("Closest match to " + approxChampName + " is " + closestChampionName);
-					champion = apiWrapper.getChampionBySkinName(closestChampionName);
-				} else {
-					champion = apiWrapper.getChampionBySkinName(approxChampName);
 				}
-
-				logger.info("Found champion info: " + champion);
-
-
-				List<RunePage> runePageList = apiWrapper.getPages();
-				RunePage apiPage = runePageList.stream().filter(o -> o.getName().equals("AutoRune")).findFirst().orElse(null);
-				if(apiPage != null) {
-					Set<String> roles = champion.getHighestWinRoleRuneMap().keySet();
-					String role = roles.iterator().next();
-
-					List<String> runes = champion.getHighestWinRoleRuneMap().get(role);
-					apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
-					List<Integer> selectedPerkIds = new ArrayList<>();
-					selectedPerkIds.add(Integer.parseInt(runes.get(1)));
-					selectedPerkIds.add(Integer.parseInt(runes.get(2)));
-					selectedPerkIds.add(Integer.parseInt(runes.get(3)));
-					selectedPerkIds.add(Integer.parseInt(runes.get(4)));
-					selectedPerkIds.add(Integer.parseInt(runes.get(5)));
-					apiPage.setSubStyleId(Integer.parseInt(runes.get(6)));
-
-					System.out.println(champion);
-					System.out.println(apiPage);
-
-				}
-//				return;
-			} else {
-//				logger.info("No selected champion found.");
 			}
+		} else {
+			logger.error("Could not get API information. Exiting.");
 		}
 	}
 }

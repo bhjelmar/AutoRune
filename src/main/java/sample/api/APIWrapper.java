@@ -1,5 +1,6 @@
 package sample.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import org.apache.log4j.Logger;
@@ -67,7 +68,37 @@ public class APIWrapper {
 
 	public APIWrapper() {
 		createFakeTrustManager();
+		currentLOLVersion = getCurrentLOLVersion();
+	}
 
+	public boolean getAPIData() {
+		if(new File("idChampionMap.ser").isFile() && new File("skinIdMap.ser").isFile()) {
+			logger.info("Champion.gg rune info and champion skin info found locally.");
+			idChampionMap = deserializeData("idChampionMap.ser");
+			skinIdMap = deserializeData("skinIdMap.ser");
+		} else {
+			logger.info("Champion.gg rune info not found locally.");
+			getChampSkinList();
+			getCGGRunes();
+			serializeData(idChampionMap, "idChampionMap.ser");
+			serializeData(skinIdMap, "skinIdMap.ser");
+		}
+		if(new File("runeTrees.ser").isFile()) {
+			logger.info("Rune info from Riot found locally.");
+			runeTrees = deserializeData("runeTrees.ser");
+		} else {
+			logger.info("Rune info from Riot not found locally.");
+			getAllRunes();
+			serializeData(runeTrees, "runeTrees.ser");
+		}
+		if(idChampionMap == null || skinIdMap == null || runeTrees == null) {
+			return false;
+		}
+		return true;
+	}
+
+	public void setLoLClientInfo() {
+		createFakeTrustManager();
 		Runtime runtime = Runtime.getRuntime();
 		try {
 			currentLOLVersion = getCurrentLOLVersion();
@@ -109,33 +140,6 @@ public class APIWrapper {
 		return idChampionMap.get(skinIdMap.get(skinName));
 	}
 
-	public boolean updateData() {
-		if(new File("idChampionMap.ser").isFile() && new File("skinIdMap.ser").isFile()) {
-			logger.info("Champion.gg rune info and champion skin info found locally.");
-			idChampionMap = deserializeData("idChampionMap.ser");
-			skinIdMap = deserializeData("skinIdMap.ser");
-		} else {
-			logger.info("Champion.gg rune info not found locally.");
-			getChampSkinList();
-			getCGGRunes();
-			serializeData(idChampionMap, "idChampionMap.ser");
-			serializeData(skinIdMap, "skinIdMap.ser");
-		}
-		if(new File("runeTrees.ser").isFile()) {
-			logger.info("Rune info from Riot found locally.");
-			runeTrees = deserializeData("runeTrees.ser");
-		} else {
-			logger.info("Rune info from Riot not found locally.");
-			getAllRunes();
-			serializeData(runeTrees, "runeTrees.ser");
-		}
-
-		if(idChampionMap == null || skinIdMap == null || runeTrees == null) {
-			return false;
-		}
-		return true;
-	}
-
 	private void serializeData(Object o, String name) {
 		try {
 			FileOutputStream fos = new FileOutputStream(name);
@@ -169,7 +173,7 @@ public class APIWrapper {
 	}
 
 	public List<RunePage> getPages() {
-		StringBuffer stringBuffer = makeHTTPCall("https://127.0.0.1:" + port + "/lol-perks/v1/pages", "GET");
+		StringBuffer stringBuffer = makeHTTPCall("https://127.0.0.1:" + port + "/lol-perks/v1/pages", "GET", null);
 		ObjectMapper mapper = new ObjectMapper();
 		List<RunePage> pageList = null;
 		try {
@@ -181,10 +185,55 @@ public class APIWrapper {
 		return pageList;
 	}
 
+	public int replacePage(long pageIdToReplace, RunePage runePage) {
+		StringBuffer response = makeHTTPCall("https://127.0.0.1:" + port + "/lol-perks/v1/pages/" + pageIdToReplace, "DELETE", null);
+		//TODO: do some check
+//		 if (deleteid == 54 || deleteid == 53 || deleteid == 52 || deleteid == 51 || deleteid == 50)
+//                    MessageBox.Show("Cant Delete Pages, Looks like its only Riots default pages left, if you know this is wrong, click the page once so it gets set to current.");
+//
+		ObjectMapper mapper = new ObjectMapper();
+		try {
+			String jsonString = mapper.writeValueAsString(runePage);
+			printRunePage(runePage);
+			response = makeHTTPCall("https://127.0.0.1:" + port + "/lol-perks/v1/pages", "POST", jsonString);
+			System.out.println(response);
+		} catch(JsonProcessingException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	private void printRunePage(RunePage runePage) {
+		//primary
+		System.out.println("primary runes");
+		for(RuneTree runeTree : runeTrees) {
+			if(runePage.getPrimaryStyleId() == runeTree.getId()) {
+				System.out.println(runeTree.getName());
+				for(Rune rune : runeTree.getRunes()) {
+					if(runePage.getSelectedPerkIds().contains(rune.getId())) {
+						System.out.println(rune.getName());
+					}
+				}
+			}
+		}
+		//secondary
+		System.out.println("secondary runes");
+		for(RuneTree runeTree : runeTrees) {
+			if(runePage.getSubStyleId() == runeTree.getId()) {
+				System.out.println(runeTree.getName());
+				for(Rune rune : runeTree.getRunes()) {
+					if(runePage.getSelectedPerkIds().contains(rune.getId())) {
+						System.out.println(rune.getName());
+					}
+				}
+			}
+		}
+	}
+
 	private void getAllRunes() {
 		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/runesReforged.json";
 		logger.info("Getting rune information from Riot: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl, "GET");
+		StringBuffer result = makeHTTPCall(stringUrl, "GET", null);
 		JSONArray jsonArray = new JSONArray(result.toString());
 
 		for(Object runeTreeTemp : jsonArray) {
@@ -216,7 +265,7 @@ public class APIWrapper {
 	private void getChampSkinList() {
 		String stringUrl = "http://ddragon.leagueoflegends.com/cdn/" + currentLOLVersion + "/data/en_US/championFull.json";
 		logger.info("Getting champion skin list from Riot: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl, "GET");
+		StringBuffer result = makeHTTPCall(stringUrl, "GET", null);
 		JSONObject jsonObject = new JSONObject(result.toString());
 		JSONObject champions = (JSONObject) jsonObject.get("data");
 
@@ -250,7 +299,7 @@ public class APIWrapper {
 	private void getCGGRunes() {
 		String stringUrl = "http://api.champion.gg/v2/champions?champData=hashes&limit=1000&api_key=" + cggAPIKey;
 		logger.info("Getting rune information from champion.gg's API: " + stringUrl);
-		StringBuffer result = makeHTTPCall(stringUrl, "GET");
+		StringBuffer result = makeHTTPCall(stringUrl, "GET", null);
 		JSONArray jsonArray = new JSONArray(result.toString());
 		for(Object o : jsonArray) {
 			if(o instanceof JSONObject) {
@@ -274,9 +323,9 @@ public class APIWrapper {
 		}
 	}
 
-	private String getCurrentLOLVersion() throws IOException {
+	private String getCurrentLOLVersion() {
 		String stringUrl = "https://ddragon.leagueoflegends.com/api/versions.json";
-		StringBuffer result = makeHTTPCall(stringUrl, "GET");
+		StringBuffer result = makeHTTPCall(stringUrl, "GET", null);
 		List<String> items = Arrays.asList(result.toString().replaceAll("\"", "").replaceAll("^.|.$", "").split("\\s*,\\s*"));
 		if(items.get(0) == null) {
 			logger.error("could not get current LoL version");
@@ -285,17 +334,28 @@ public class APIWrapper {
 		return items.get(0);
 	}
 
-	private StringBuffer makeHTTPCall(String stringUrl, String method) {
+	private StringBuffer makeHTTPCall(String stringUrl, String method, String body) {
 		StringBuffer content = null;
 		try {
+			System.out.println("HTTP " + method + " " + stringUrl);
 			URL url = new URL(stringUrl);
 			try {
 				HttpURLConnection con = (HttpURLConnection) url.openConnection();
+//				con.setConnectTimeout(5000);
+				con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+				con.setDoOutput(true);
+				con.setDoInput(true);
 				con.setRequestMethod(method);
 
-//				TODO: this is a bit lazy...
+//				TODO: this is a bit lazy to do every time we make a rest call
 				String encoded = Base64.getEncoder().encodeToString(("riot" + ":" + remotingAuthToken).getBytes(StandardCharsets.UTF_8));
 				con.setRequestProperty("Authorization", "Basic " + encoded);
+
+				if(method == "POST") {
+					OutputStream os = con.getOutputStream();
+					os.write(body.getBytes("UTF-8"));
+					os.close();
+				}
 
 				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 				String inputLine;
@@ -303,6 +363,7 @@ public class APIWrapper {
 				while((inputLine = in.readLine()) != null) {
 					content.append(inputLine);
 				}
+				System.out.println("HTTP status response code: " + con.getResponseCode());
 				in.close();
 			} catch(IOException e) {
 				logger.error(e.getLocalizedMessage());
