@@ -65,7 +65,7 @@ public class WindowScraper {
 			logger.error(e.getLocalizedMessage());
 		}
 		String result;
-		if(captureLoLClient(image, false)) {
+		if(captureLoLClient(image, true)) {
 			result = getImgText(image);
 		} else {
 //			System.out.println("not getting text");

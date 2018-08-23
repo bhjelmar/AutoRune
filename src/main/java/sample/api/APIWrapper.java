@@ -55,6 +55,7 @@ public class APIWrapper {
 	private final Logger logger = Logger.getLogger(this.getClass());
 	private String remotingAuthToken;
 	private String port;
+	@Getter
 	private String pid;
 
 	private String currentLOLVersion;
