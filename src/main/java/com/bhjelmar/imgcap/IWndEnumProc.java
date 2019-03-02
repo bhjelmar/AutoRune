@@ -1,4 +1,4 @@
-package sample.imgcap;
+package com.bhjelmar.imgcap;
 
 import com.sun.jna.win32.StdCallLibrary;
 

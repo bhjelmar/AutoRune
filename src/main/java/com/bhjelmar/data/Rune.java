@@ -1,4 +1,4 @@
-package sample.data;
+package com.bhjelmar.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,5 +11,6 @@ public class Rune implements Serializable {
 
 	private String name;
 	private int id;
+	private String imgUrl;
 
 }

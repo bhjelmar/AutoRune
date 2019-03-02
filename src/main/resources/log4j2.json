@@ -1,0 +1,76 @@
+{
+  "configuration": {
+    "name": "Default",
+    "properties": {
+      "property": [
+        {
+          "name": "log-path",
+          "value": "logs"
+        },
+        {
+          "name": "archive",
+          "value": "${log-path}/archive"
+        }
+      ]
+    },
+    "appenders": {
+      "Console": {
+        "name": "Console-Appender",
+        "target": "SYSTEM_OUT",
+        "PatternLayout": {
+          "pattern": "%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} [%t] %highlight{${LOG_LEVEL_PATTERN:-%5p}}{ERROR=red, WARN=yellow, INFO=blue, DEBUG=green} %style{%-C{1.}}{cyan} : %m%n"
+        }
+      },
+      "File": {
+        "name": "File-Appender",
+        "fileName": "${log-path}/logfile.log",
+        "PatternLayout": {
+          "pattern": "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{1} : %msg%n"
+        }
+      },
+      "RollingFile": {
+        "name": "RollingFile-Appender",
+        "fileName": "${log-path}/rollingfile.log",
+        "filePattern": "${archive}/rollingfile.log.%d{yyyy-MM-dd-hh-mm}.gz",
+        "PatternLayout": {
+          "pattern": "%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{1} : %msg%n"
+        },
+        "Policies": {
+          "SizeBasedTriggeringPolicy": {
+            "size": "1 KB"
+          }
+        },
+        "DefaultRolloverStrategy": {
+          "max": "30"
+        }
+      }
+    },
+    "loggers": {
+      "logger": {
+        "name": "com.bhjelmar",
+        "level": "debug",
+        "additivity": "false",
+        "appender-ref": [
+          {
+            "ref": "Console-Appender",
+            "level": "debug"
+          },
+          {
+            "ref": "File-Appender",
+            "level": "debug"
+          },
+          {
+            "ref": "RollingFile-Appender",
+            "level": "debug"
+          }
+        ]
+      },
+      "root": {
+        "level": "error",
+        "appender-ref": {
+          "ref": "Console-Appender"
+        }
+      }
+    }
+  }
+}

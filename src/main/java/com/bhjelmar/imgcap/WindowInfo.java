@@ -1,4 +1,4 @@
-package sample.imgcap;
+package com.bhjelmar.imgcap;
 
 public class WindowInfo {
 	int hwnd;

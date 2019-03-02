@@ -1,12 +1,12 @@
-package sample.imgcap;
+package com.bhjelmar.imgcap;
 
+import com.bhjelmar.Main;
 import com.sun.jna.Native;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.extern.log4j.Log4j2;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
-import org.apache.log4j.Logger;
-import sample.Main;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -18,9 +18,8 @@ import java.net.URL;
 import java.nio.file.Paths;
 
 @Data
+@Log4j2
 public class WindowScraper {
-
-	private final Logger logger = Logger.getLogger(this.getClass());
 
 	int hWnd;
 	WindowInfo w;
@@ -41,8 +40,8 @@ public class WindowScraper {
 		}
 	}
 
-	public void findLoLWindow() {
-		hWnd = IUser32.instance.FindWindowA(null, "League of Legends");
+	public void findWindow(String windowTitle) {
+		hWnd = IUser32.instance.FindWindowA(null, windowTitle);
 		w = getWindowInfo(hWnd);
 	}
 
@@ -57,36 +56,39 @@ public class WindowScraper {
 	}
 
 	public String update() {
-		IUser32.instance.SetForegroundWindow(w.hwnd);
-		BufferedImage image = null;
-		try {
-			image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
-		} catch(AWTException e) {
-			logger.error(e.getLocalizedMessage());
-		}
-		String result;
-		if(captureLoLClient(image, true)) {
-			result = getImgText(image);
-		} else {
-//			System.out.println("not getting text");
-			return "";
-		}
+		if(IUser32.instance.GetForegroundWindow() == w.hwnd) {
+//			IUser32.instance.SetForegroundWindow(w.hwnd);
+			BufferedImage image = null;
+			try {
+				image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
+			} catch(AWTException e) {
+				log.error(e.getStackTrace());
+			}
+			String result;
+			if(captureLoLClient(image, true)) {
+				result = getImgText(image);
+			} else {
+				//			System.out.println("not getting text");
+				return "";
+			}
 
-		if(!result.startsWith("CHOOSE YOUR LOADOUT!")) {
-			return "";
-		}
+			if(!result.startsWith("CHOOSE YOUR LOADOUT!")) {
+				return "";
+			}
 
-		return result.replaceAll("\n", "").substring("CHOOSE YOUR LOADOUT!".length());
+			return result.replaceAll("\n", "").substring("CHOOSE YOUR LOADOUT!".length());
+		}
+		return "";
 	}
 
 	public String getImgText(BufferedImage image) {
-		logger.info("Attempting to read champion text from screen.");
+		log.debug("Attempting to read champion text from screen");
 		String result = null;
 		try {
 			result = instance.doOCR(image);
-			System.out.println(result);
+//			log.debug(result);
 		} catch(TesseractException e) {
-			System.err.println(e.getMessage());
+			e.printStackTrace();
 		}
 		return result;
 	}
@@ -145,7 +147,7 @@ int a_x;
 		}
 
 		double percentagePixelsBlack = (allPixeBlack * 1.0 / (image.getWidth() * image.getHeight() * 1.0) * 100.0);
-		return percentagePixelsBlack < 99.74;
+		return percentagePixelsBlack < 99.74; // magic number seems to work well
 	}
 
 }

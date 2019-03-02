@@ -1,8 +1,23 @@
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.GridPane?>
+<?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<GridPane fx:controller="sample.api.APIWrapper"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
-</GridPane>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.web.WebView?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121"
+            fx:controller="com.bhjelmar.ui.RuneSelectionController">
+    <!--<top>-->
+    <!--<Label fx:id="championNameLabel" BorderPane.alignment="CENTER" />-->
+    <!--</top>-->
+    <top>
+        <TabPane fx:id="roleSelection" prefHeight="30.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE"
+                 BorderPane.alignment="CENTER"/>
+    </top>
+    <center>
+        <StackPane prefHeight="900.0" prefWidth="1600.0" BorderPane.alignment="CENTER">
+            <children>
+                <WebView fx:id="web" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0"/>
+            </children>
+        </StackPane>
+    </center>
+</BorderPane>

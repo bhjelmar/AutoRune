@@ -1,4 +1,4 @@
-package sample.imgcap;
+package com.bhjelmar.imgcap;
 
 import com.sun.jna.Native;
 import com.sun.jna.win32.StdCallLibrary;
@@ -31,6 +31,8 @@ public interface IUser32 extends StdCallLibrary {
 	int GetActiveWindow();
 
 	boolean SetForegroundWindow(int hWnd);
+
+	int GetForegroundWindow();
 
 	int FindWindowA(String winClass, String title);
 

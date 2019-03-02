@@ -1,4 +1,4 @@
-package sample.data;
+package com.bhjelmar.data;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
