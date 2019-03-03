@@ -1,23 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.web.WebView?>
+<?import javafx.scene.text.Font?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="com.bhjelmar.ui.RuneSelectionController">
     <!--<top>-->
-    <!--<Label fx:id="championNameLabel" BorderPane.alignment="CENTER" />-->
+    <!---->
     <!--</top>-->
     <top>
         <TabPane fx:id="roleSelection" prefHeight="30.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE"
                  BorderPane.alignment="CENTER"/>
     </top>
     <center>
-        <StackPane prefHeight="900.0" prefWidth="1600.0" BorderPane.alignment="CENTER">
-            <children>
-                <WebView fx:id="web" minHeight="-1.0" minWidth="-1.0" prefHeight="-1.0" prefWidth="-1.0"/>
-            </children>
-        </StackPane>
+        <StackPane fx:id="runesPane" prefHeight="900.0" prefWidth="1600.0" BorderPane.alignment="CENTER"/>
     </center>
+    <bottom>
+        <Label fx:id="championNameLabel" contentDisplay="CENTER" prefHeight="30.0" prefWidth="500.0"
+               textAlignment="CENTER" textFill="WHITE">
+            <font>
+                <Font size="36.0"/>
+            </font>
+        </Label>
+    </bottom>
 </BorderPane>

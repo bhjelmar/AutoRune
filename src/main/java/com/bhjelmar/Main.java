@@ -10,8 +10,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,6 +30,8 @@ public class Main extends Application {
 	@Getter
 	private static String championName;
 	private int counter = 0;
+	@Setter
+	private static Pair<String, String> selectedRoleAndRune;
 
 	public static void main(String[] args) throws Exception {
 //        Parent root = FXMLLoader.load(getClass().getResource("/sample.fxml"));
@@ -40,43 +44,39 @@ public class Main extends Application {
 		APIWrapper apiWrapper = new APIWrapper();
 		apiWrapper.getStaticData();
 
-
-		runesMap = apiWrapper.getOPGGRunes("Akali", 84);
-		championName = "Akali";
-		launch();
-
-		apiWrapper.setLoLClientInfo();
-		List<RunePage> runePageList = apiWrapper.getPages();
-		RunePage apiPage = runePageList.stream()
-			.filter(o -> o.getName()
-				.equalsIgnoreCase("AutoRune"))
-			.findFirst()
-			.orElse(null);
-		if(apiPage != null) {
-			String mostFrequentPosition = runesMap.keySet().stream()
-				.findFirst()
-				.orElse(null);
-			List<String> runes = runesMap.get(mostFrequentPosition).get(0).getRunes();
-			apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
-			apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
-			List<Integer> selectedPerkIds = new ArrayList<>();
-			selectedPerkIds.add(Integer.parseInt(runes.get(1)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(2)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(3)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(4)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(6)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(7)));
-			// runes now include perks
-			selectedPerkIds.add(Integer.parseInt(runes.get(8)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(9)));
-			selectedPerkIds.add(Integer.parseInt(runes.get(10)));
-			apiPage.setSelectedPerkIds(selectedPerkIds);
-
-			apiWrapper.replacePage(apiPage.getId(), apiPage);
-
-		} else {
-			log.error("Cannot find rune page named AutoRune. Please create page.");
-		}
+//		runesMap = apiWrapper.getOPGGRunes("Aatrox", 266);
+//		championName = "Aatrox";
+//		launch();
+//
+//		apiWrapper.setLoLClientInfo();
+//		List<RunePage> runePageList = apiWrapper.getPages();
+//		RunePage apiPage = runePageList.stream()
+//			.filter(o -> o.getName()
+//				.equalsIgnoreCase("AutoRune"))
+//			.findFirst()
+//			.orElse(null);
+//		if(apiPage != null) {
+//			List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
+//			apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+//			apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+//			List<Integer> selectedPerkIds = new ArrayList<>();
+//			selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+//			// runes now include perks
+//			selectedPerkIds.add(Integer.parseInt(runes.get(8)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(9)));
+//			selectedPerkIds.add(Integer.parseInt(runes.get(10)));
+//			apiPage.setSelectedPerkIds(selectedPerkIds);
+//
+//			apiWrapper.replacePage(apiPage.getId(), apiPage);
+//
+//		} else {
+//			log.error("Cannot find rune page named AutoRune. Please create page.");
+//		}
 
 
 		String prevChampNameScraped = "";
@@ -109,47 +109,49 @@ public class Main extends Application {
 
 					log.info("Locked in champion {}", champion.getName());
 
-//					List<RunePage> runePageList = apiWrapper.getPages();
-//					RunePage apiPage = runePageList.stream()
-//						.filter(o -> o.getName()
-//							.equalsIgnoreCase("AutoRune"))
-//						.findFirst()
-//						.orElse(null);
-//
-//					runesMap = apiWrapper.getOPGGRunes(champion.getName());
-////					launch();
-//
-//					if(apiPage != null) {
-//						String mostFrequentPosition = runesMap.keySet().stream()
-//							.findFirst()
-//							.orElse(null);
-//
-//						if(mostFrequentPosition != null) {
-//							List<String> runes = runesMap.get(mostFrequentPosition).get(0).getRunes();
-//							apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
-//							apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
-//							List<Integer> selectedPerkIds = new ArrayList<>();
-//							selectedPerkIds.add(Integer.parseInt(runes.get(1)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(2)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(3)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(4)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(6)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(7)));
-//							// runes now include perks
-//							selectedPerkIds.add(Integer.parseInt(runes.get(8)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(9)));
-//							selectedPerkIds.add(Integer.parseInt(runes.get(10)));
-//							apiPage.setSelectedPerkIds(selectedPerkIds);
-//
-//							apiWrapper.replacePage(apiPage.getId(), apiPage);
-//
-//						} else {
-//							log.error("Not enough data for champion {}", champion.getName());
-//						}
-//
-//					} else {
-//						log.error("Cannot find rune page named AutoRune. Please create page.");
-//					}
+					List<RunePage> runePageList = apiWrapper.getPages();
+					RunePage apiPage = runePageList.stream()
+						.filter(o -> o.getName()
+							.equalsIgnoreCase("AutoRune"))
+						.findFirst()
+						.orElse(null);
+
+					runesMap = apiWrapper.getOPGGRunes(champion.getName(), champion.getChampionId());
+					championName = champion.getName();
+					launch();
+
+					if(apiPage != null) {
+						String mostFrequentPosition = runesMap.keySet().stream()
+							.findFirst()
+							.orElse(null);
+
+						if(mostFrequentPosition != null) {
+							List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
+							apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+							apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+							List<Integer> selectedPerkIds = new ArrayList<>();
+							selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+							// runes now include perks
+							selectedPerkIds.add(Integer.parseInt(runes.get(8)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(9)));
+							selectedPerkIds.add(Integer.parseInt(runes.get(10)));
+							apiPage.setSelectedPerkIds(selectedPerkIds);
+
+							apiWrapper.replacePage(apiPage.getId(), apiPage);
+
+						} else {
+							log.error("Not enough data for champion {}", champion.getName());
+						}
+
+					} else {
+						log.error("Cannot find rune page named AutoRune. Please create page.");
+					}
+
 				}
 				prevChampNameScraped = approxChampName;
 				Thread.sleep(1000);
@@ -161,38 +163,9 @@ public class Main extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		Parent root = FXMLLoader.load(getClass().getResource("/sample.fxml"));
 		primaryStage.setTitle("Rune Selector");
-		Scene scene = new Scene(root, 900, 800);
-//		scene.getStylesheets().add("/sample.css");
+		Scene scene = new Scene(root, 500, 800);
 		primaryStage.setScene(scene);
 		primaryStage.show();
-
-//		Label selectedRole = new Label();
-//		selectedRole.setFont(new Font("Calibri", 15));
-//		selectedRole.setTextFill(Color.BLACK);
-//
-//		List<Button> roleButtons = new ArrayList<>();
-//		for(String role : runesMap.keySet()) {
-//			Button button = new Button();
-//			button.setFont(new Font("Calibri", 15));
-//			button.setText(role);
-//			button.setOnAction(event -> selectedRole.setText("Your role is " + button.getText()));
-//			roleButtons.add(button);
-//		}
-//
-//		BorderPane bp = new BorderPane();
-//		bp.setBottom(selectedRole);
-//		bp.setAlignment(selectedRole, Pos.TOP_CENTER);
-//		int i = 0;
-//		for(Button button : roleButtons) {
-//			grid.add(button, i++, 0);
-//			bp.setCenter(selectedRole);
-//		}
-//
-//		StackPane root = new StackPane();
-//		root.getChildren().add(grid);
-//		root.getChildren().add(bp);
-//		stage.setScene(new Scene(root, 250, 250));
-//		stage.show();
 	}
 
 }

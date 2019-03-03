@@ -370,9 +370,8 @@ public class APIWrapper {
 
 		Map<String, List<RuneSelection>> roleRuneSelectionMap = new HashMap<>();
 		try {
-			log.debug("Getting Champion role info from {}", url);
+			log.debug("Getting Champion role info from {}", url.substring(0, url.indexOf("/mid/rune")));
 			Document doc = Jsoup.connect(url).timeout(0).get();
-			Document wholePage = doc;
 			log.debug("Finished fetch");
 			if(doc.getElementsByClass("champion-stats-position").isEmpty()) {
 				log.error("Unable to fetch runes for Champion: {}", championName);
