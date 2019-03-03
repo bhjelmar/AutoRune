@@ -1,6 +1,11 @@
-.rune-page-item img {
-    display: block;
-    width: 100%;
+body {
+    margin: 0;
+    background: #3c3f41;
+}
+
+.perk-page__title-container {
+    display: -webkit-flex;
+    justify-content: center;
 }
 
 .perk-page__title-container .perk-page__title {
@@ -15,17 +20,19 @@
     margin: 10px 0;
 }
 
+.perk-page__title-container--popup {
+    background: #ededed;
+    margin-top: -20px;
+}
+
 .perk-page-wrap {
     font-size: 0;
-    /*text-align: center;*/
+    text-align: center;
     display: -webkit-flex;
-    /*justify-content: space-between;*/
-    /*align-items: flex-end;*/
+    justify-content: space-between;
+    align-items: flex-end;
     padding: 10px;
-
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    background: #2b2b2b;
 }
 
 .perk-page-wrap:after {
@@ -42,11 +49,33 @@
     padding-top: 12px;
 }
 
+.perk-page-wrap--popup {
+    justify-content: center;
+}
+
 .perk-page-wrap .perk-page {
     display: inline-block;
     vertical-align: bottom;
     max-width: 170px;
     box-sizing: border-box;
+}
+
+.SpectateSummoner .perk-page-wrap {
+    background: #ededed;
+    margin-bottom: 10px;
+}
+
+.champion-overview__data .perk-page-wrap, .champion-stats__table .perk-page-wrap {
+    text-align: left;
+}
+
+.champion-stats__table .perk-page-wrap {
+    margin-top: 12px;
+    margin-bottom: 12px;
+}
+
+.MatchBuild .RuneBuild .perk-page-wrap {
+    padding-bottom: 10px;
 }
 
 .perk-page:after {
@@ -76,7 +105,7 @@
     height: 32px;
     border-radius: 50%;
     background: #ededed;
-    margin: auto;
+    margin: 0 auto;
     overflow: hidden;
 }
 
@@ -85,6 +114,11 @@
     width: 100%;
     height: 100%;
     opacity: 0.5;
+}
+
+.perk-page__image--small {
+    width: 24px;
+    height: 24px;
 }
 
 .perk-page__item--keystone .perk-page__image {
@@ -110,53 +144,45 @@
     margin: 0 8px;
 }
 
-/*.fragment-page {*/
-/*display: flex;*/
-/*align-items: flex-end;*/
-/*margin: 0px 8px 4px 4px;*/
-/*}*/
-/*.fragment-page>.fragment__summary {*/
-/*display: flex;*/
-/*flex-direction: column;*/
-/*}*/
-/*.fragment-page>.fragment__detail {*/
-/*margin-left: 24px;*/
-/*}*/
-/*.fragment-page>.fragment__detail>.fragment__row {*/
-/*display: flex;*/
-/*margin-top: 16px;*/
-/*}*/
-/*.fragment-page>.fragment__detail>.fragment__row>.fragment {*/
-/*margin-left: 12px;*/
-/*}*/
-.fragment__row {
-    width: 300px;
-    height: 50px;
-    white-space: nowrap;
-    overflow: hidden;
-    /*background-color: red;*/
-    /*white-space:nowrap;*/
-    /*overflow-x:scroll;*/
+.page-spacer {
+    margin: 0 8px;
 }
 
-.fragment {
-    width: 150px;
-    height: 20px;
-    /*background-color: green;*/
-    display: inline-block;
-    margin-left: 8px;
-
+.fragment-page {
+    display: -webkit-flex;
+    align-items: flex-end;
+    margin: 0px 8px 4px 4px;
 }
 
-/*.fragment-page>.fragment__detail>.fragment__row>.fragment:first-child {*/
-/*margin-left: 0;*/
-/*}*/
+.fragment-page > .fragment__summary {
+    display: -webkit-flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.fragment-page > .fragment__detail {
+    margin-left: 24px;
+}
+
+.fragment-page > .fragment__detail > .fragment__row {
+    display: -webkit-flex;
+    margin-top: 16px;
+}
+
+.fragment-page > .fragment__detail > .fragment__row > .fragment {
+    margin-left: 12px;
+}
+
+.fragment-page > .fragment__detail > .fragment__row > .fragment:first-child {
+    margin-left: 0;
+}
+
 .fragment-page .active {
     opacity: 1;
 }
 
 .fragment {
-    width: 24x;
+    width: 24px;
     height: 24px;
     border-radius: 24px;
     background-color: #e5e5e5;
@@ -168,4 +194,8 @@
     background-color: #e5e5e5;
 }
 
-
+.fragment__line {
+    width: 1px;
+    height: 16px;
+    background-color: #e5e5e5;
+}

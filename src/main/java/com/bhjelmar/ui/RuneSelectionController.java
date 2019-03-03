@@ -7,7 +7,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.Border;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -87,7 +86,7 @@ public class RuneSelectionController {
 				.replaceFirst("</em>", " Games&#9;&#9;&#9;</em>");
 
 			webEngine.loadContent(runeRowHTML);
-			webEngine.setUserStyleSheetLocation(getClass().getResource("/attempt_3.css").toString());
+			webEngine.setUserStyleSheetLocation(getClass().getResource("/rune_selection.css").toString());
 
 			runesPane.getChildren().add(webView);
 
