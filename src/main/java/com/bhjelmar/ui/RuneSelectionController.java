@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -30,7 +31,9 @@ public class RuneSelectionController {
 	private TabPane roleSelection;
 
 	public void initialize() {
+		runesPane.setStyle("-fx-background-color: #3c3f41;");
 		championNameLabel.setText(Main.getChampionName());
+		championNameLabel.setStyle("-fx-background-color: #3c3f41;");
 
 		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 		roleSelection.tabMinWidthProperty().set(100);
@@ -59,7 +62,8 @@ public class RuneSelectionController {
 			WebView webView = new WebView();
 			WebEngine webEngine = webView.getEngine();
 
-			webView.setId(role + ":" + String.valueOf(i));
+			webView.setId(role + ":" + i);
+			webView.setOpacity(.7);
 			webView.setOnMouseClicked(event -> {
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
@@ -69,14 +73,21 @@ public class RuneSelectionController {
 				Platform.exit();
 			});
 			webView.setOnMouseEntered(event -> {
-				webView.setOpacity(.5);
-			});
-			webView.setOnMouseExited(event -> {
 				webView.setOpacity(1);
 			});
-			webView.setTranslateY(220 * i);
-			webEngine.loadContent(runeSelection.getElement().toString().replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net"));
-			webEngine.setUserStyleSheetLocation(getClass().getResource("/attempt_2.css").toString());
+			webView.setOnMouseExited(event -> {
+				webView.setOpacity(.7);
+			});
+			webView.setTranslateY(240 * i);
+
+			String runeRowHTML = runeSelection.getElement().toString()
+				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
+				.replaceFirst("% <em>", "% Pick Rate <em>")
+				.replaceFirst("%</td>", "% Win Rate </td>")
+				.replaceFirst("</em>", " Games&#9;&#9;&#9;</em>");
+
+			webEngine.loadContent(runeRowHTML);
+			webEngine.setUserStyleSheetLocation(getClass().getResource("/attempt_3.css").toString());
 
 			runesPane.getChildren().add(webView);
 

@@ -44,39 +44,39 @@ public class Main extends Application {
 		APIWrapper apiWrapper = new APIWrapper();
 		apiWrapper.getStaticData();
 
-//		runesMap = apiWrapper.getOPGGRunes("Aatrox", 266);
-//		championName = "Aatrox";
-//		launch();
-//
-//		apiWrapper.setLoLClientInfo();
-//		List<RunePage> runePageList = apiWrapper.getPages();
-//		RunePage apiPage = runePageList.stream()
-//			.filter(o -> o.getName()
-//				.equalsIgnoreCase("AutoRune"))
-//			.findFirst()
-//			.orElse(null);
-//		if(apiPage != null) {
-//			List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
-//			apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
-//			apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
-//			List<Integer> selectedPerkIds = new ArrayList<>();
-//			selectedPerkIds.add(Integer.parseInt(runes.get(1)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(2)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(3)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(4)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(6)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(7)));
-//			// runes now include perks
-//			selectedPerkIds.add(Integer.parseInt(runes.get(8)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(9)));
-//			selectedPerkIds.add(Integer.parseInt(runes.get(10)));
-//			apiPage.setSelectedPerkIds(selectedPerkIds);
-//
-//			apiWrapper.replacePage(apiPage.getId(), apiPage);
-//
-//		} else {
-//			log.error("Cannot find rune page named AutoRune. Please create page.");
-//		}
+		championName = "Karthus";
+		runesMap = apiWrapper.getOPGGRunes(championName, apiWrapper.getChampionBySkinName(championName).getChampionId());
+		launch();
+
+		apiWrapper.setLoLClientInfo();
+		List<RunePage> runePageList = apiWrapper.getPages();
+		RunePage apiPage = runePageList.stream()
+			.filter(o -> o.getName()
+				.equalsIgnoreCase("AutoRune"))
+			.findFirst()
+			.orElse(null);
+		if(apiPage != null) {
+			List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
+			apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+			apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+			List<Integer> selectedPerkIds = new ArrayList<>();
+			selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+			// runes now include perks
+			selectedPerkIds.add(Integer.parseInt(runes.get(8)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(9)));
+			selectedPerkIds.add(Integer.parseInt(runes.get(10)));
+			apiPage.setSelectedPerkIds(selectedPerkIds);
+
+			apiWrapper.replacePage(apiPage.getId(), apiPage);
+
+		} else {
+			log.error("Cannot find rune page named AutoRune. Please create page.");
+		}
 
 
 		String prevChampNameScraped = "";
@@ -109,48 +109,48 @@ public class Main extends Application {
 
 					log.info("Locked in champion {}", champion.getName());
 
-					List<RunePage> runePageList = apiWrapper.getPages();
-					RunePage apiPage = runePageList.stream()
-						.filter(o -> o.getName()
-							.equalsIgnoreCase("AutoRune"))
-						.findFirst()
-						.orElse(null);
-
-					runesMap = apiWrapper.getOPGGRunes(champion.getName(), champion.getChampionId());
-					championName = champion.getName();
-					launch();
-
-					if(apiPage != null) {
-						String mostFrequentPosition = runesMap.keySet().stream()
-							.findFirst()
-							.orElse(null);
-
-						if(mostFrequentPosition != null) {
-							List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
-							apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
-							apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
-							List<Integer> selectedPerkIds = new ArrayList<>();
-							selectedPerkIds.add(Integer.parseInt(runes.get(1)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(2)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(3)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(4)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(6)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(7)));
-							// runes now include perks
-							selectedPerkIds.add(Integer.parseInt(runes.get(8)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(9)));
-							selectedPerkIds.add(Integer.parseInt(runes.get(10)));
-							apiPage.setSelectedPerkIds(selectedPerkIds);
-
-							apiWrapper.replacePage(apiPage.getId(), apiPage);
-
-						} else {
-							log.error("Not enough data for champion {}", champion.getName());
-						}
-
-					} else {
-						log.error("Cannot find rune page named AutoRune. Please create page.");
-					}
+//					List<RunePage> runePageList = apiWrapper.getPages();
+//					RunePage apiPage = runePageList.stream()
+//						.filter(o -> o.getName()
+//							.equalsIgnoreCase("AutoRune"))
+//						.findFirst()
+//						.orElse(null);
+//
+//					runesMap = apiWrapper.getOPGGRunes(champion.getName(), champion.getChampionId());
+//					championName = champion.getName();
+//					launch();
+//
+//					if(apiPage != null) {
+//						String mostFrequentPosition = runesMap.keySet().stream()
+//							.findFirst()
+//							.orElse(null);
+//
+//						if(mostFrequentPosition != null) {
+//							List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
+//							apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+//							apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+//							List<Integer> selectedPerkIds = new ArrayList<>();
+//							selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+//							// runes now include perks
+//							selectedPerkIds.add(Integer.parseInt(runes.get(8)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(9)));
+//							selectedPerkIds.add(Integer.parseInt(runes.get(10)));
+//							apiPage.setSelectedPerkIds(selectedPerkIds);
+//
+//							apiWrapper.replacePage(apiPage.getId(), apiPage);
+//
+//						} else {
+//							log.error("Not enough data for champion {}", champion.getName());
+//						}
+//
+//					} else {
+//						log.error("Cannot find rune page named AutoRune. Please create page.");
+//					}
 
 				}
 				prevChampNameScraped = approxChampName;
@@ -164,6 +164,7 @@ public class Main extends Application {
 		Parent root = FXMLLoader.load(getClass().getResource("/sample.fxml"));
 		primaryStage.setTitle("Rune Selector");
 		Scene scene = new Scene(root, 500, 800);
+		scene.getStylesheets().add("/main.css");
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
