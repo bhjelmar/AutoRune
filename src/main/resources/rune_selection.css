@@ -1,6 +1,6 @@
 body {
     margin: 0;
-    background: #3c3f41;
+    background: #2b2b2b;
 }
 
 .perk-page__title-container {
@@ -198,4 +198,9 @@ body {
     width: 1px;
     height: 16px;
     background-color: #e5e5e5;
+}
+
+.champion-stats__table__cell--pickrate {
+    font-weight: bold;
+    color: #FFFFFF;
 }

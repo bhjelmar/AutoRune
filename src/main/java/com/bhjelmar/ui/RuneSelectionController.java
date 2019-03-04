@@ -4,10 +4,13 @@ import com.bhjelmar.Main;
 import com.bhjelmar.data.RuneSelection;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.layout.StackPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.Pair;
@@ -23,15 +26,21 @@ public class RuneSelectionController {
 
 	private static Map<String, List<RuneSelection>> runesMap;
 	public Label championNameLabel;
-	public StackPane runesPane;
+	public VBox runesPane;
 	public WebView testWebView;
+	public ImageView championImage;
+	public GridPane footer;
+	public GridPane header;
 
 	@FXML
 	private TabPane roleSelection;
 
 	public void initialize() {
-		runesPane.setStyle("-fx-background-color: #3c3f41;");
-		championNameLabel.setStyle("-fx-background-color: #3c3f41;");
+//		runesPane.setStyle("-fx-background-color: #3c3f41;");
+//		championNameLabel.setStyle("-fx-background-color: #3c3f41;");
+		footer.setStyle("-fx-background-color: #2b2b2b;");
+		header.setStyle("-fx-background-color: #2b2b2b;");
+		runesPane.setSpacing(10);
 
 		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 		roleSelection.tabMinWidthProperty().set(100);
@@ -49,8 +58,15 @@ public class RuneSelectionController {
 	}
 
 	private void createRunesList(String role) {
-		runesPane.getChildren().remove(1, runesPane.getChildren().size());
-		championNameLabel.setText(Main.getChampionName() + " - " + role);
+//		runesPane.getChildren().remove(1, runesPane.getChildren().size());
+//		GridPane gp = ((GridPane)runesPane.getChildren().get(0));
+//		gp.setStyle("-fx-background-color: #2b2b2b;");
+		runesPane.getChildren().clear();
+
+		championNameLabel.setText(Main.getChampionName());
+		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + Main.getChampionName() + ".png"));
+		championImage.setFitHeight(30);
+		championImage.setFitWidth(30);
 
 		int i = 0;
 		// showing > 3 pages per role is overkill imo
@@ -59,9 +75,9 @@ public class RuneSelectionController {
 
 			WebView webView = new WebView();
 			WebEngine webEngine = webView.getEngine();
-
+			webView.setMaxSize(479, 250);
 			webView.setId(role + ":" + i);
-			webView.setOpacity(.7);
+			webView.setOpacity(.85);
 			webView.setOnMouseClicked(event -> {
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
@@ -71,12 +87,11 @@ public class RuneSelectionController {
 				Platform.exit();
 			});
 			webView.setOnMouseEntered(event -> {
-				webView.setOpacity(1);
+				webView.setOpacity(.90);
 			});
 			webView.setOnMouseExited(event -> {
-				webView.setOpacity(.7);
+				webView.setOpacity(.85);
 			});
-			webView.setTranslateY((240 * i) + 50);
 
 			webEngine.loadContent(runeSelection.getElement().toString()
 				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
