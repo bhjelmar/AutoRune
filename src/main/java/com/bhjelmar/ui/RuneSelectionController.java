@@ -76,7 +76,7 @@ public class RuneSelectionController {
 			webView.setOnMouseExited(event -> {
 				webView.setOpacity(.7);
 			});
-			webView.setTranslateY((240 * i) + 40);
+			webView.setTranslateY((240 * i) + 50);
 
 			webEngine.loadContent(runeSelection.getElement().toString()
 				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
