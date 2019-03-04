@@ -34,26 +34,29 @@ public class RuneSelectionController {
 	private static Map<String, List<RuneSelection>> runesMap;
 	public Label championNameLabel;
 	public VBox runesPane;
-	public WebView testWebView;
 	public ImageView championImage;
 	public GridPane footer;
 	public GridPane header;
 	public Hyperlink donate;
 	public Hyperlink contribute;
+	public BorderPane window;
+	public Label lolConnected;
 
 	@FXML
 	private TabPane roleSelection;
 
 	public void initialize() {
-//		runesPane.setStyle("-fx-background-color: #3c3f41;");
-//		championNameLabel.setStyle("-fx-background-color: #3c3f41;");
+		window.setStyle("-fx-background-image: url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
+			Main.getChampionName() +
+			"_0.jpg');");
+
 		footer.setStyle("-fx-background-color: #2b2b2b;");
 		header.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.setSpacing(10);
 
-		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-		roleSelection.tabMinWidthProperty().set(100);
-		roleSelection.tabMaxWidthProperty().set(100);
+//		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+//		roleSelection.tabMinWidthProperty().set(100);
+//		roleSelection.tabMaxWidthProperty().set(100);
 
 		runesMap = Main.getRunesMap();
 		for(String role : runesMap.keySet()) {

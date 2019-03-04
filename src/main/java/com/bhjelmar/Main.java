@@ -45,7 +45,7 @@ public class Main extends Application {
 		APIWrapper apiWrapper = new APIWrapper();
 		apiWrapper.getStaticData();
 
-		championName = "Irelia";
+		championName = "Graves";
 		runesMap = apiWrapper.getOPGGRunes(championName, apiWrapper.getChampionBySkinName(championName).getChampionId());
 		launch();
 

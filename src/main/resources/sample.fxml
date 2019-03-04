@@ -19,41 +19,30 @@
     <top>
         <TabPane fx:id="roleSelection" prefHeight="30.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
     </top>
-   <bottom>
-      <GridPane fx:id="footer" BorderPane.alignment="CENTER">
-        <columnConstraints>
-          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-          <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-        </columnConstraints>
-        <rowConstraints>
-          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-        </rowConstraints>
-         <children>
-            <Hyperlink fx:id="donate" text="donate" />
-            <Hyperlink fx:id="contribute" text="contribute" GridPane.columnIndex="1" />
-            <Label text="v1.0.0" textFill="#828282" GridPane.columnIndex="2" />
-         </children>
-      </GridPane>
-   </bottom>
    <center>
       <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
          <top>
-            <GridPane fx:id="header" maxHeight="-Infinity" BorderPane.alignment="CENTER">
+            <GridPane fx:id="header" BorderPane.alignment="CENTER">
               <columnConstraints>
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="782.0" minWidth="10.0" prefWidth="150.0" />
-                <ColumnConstraints hgrow="SOMETIMES" maxWidth="1183.0" minWidth="10.0" prefWidth="150.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                   <Label fx:id="championNameLabel" alignment="CENTER" maxHeight="10.0" prefWidth="500.0" textFill="#828282" GridPane.columnIndex="1">
+                   <ImageView fx:id="championImage" GridPane.halignment="CENTER" GridPane.valignment="CENTER" GridPane.columnIndex="0"/>
+                   <Label fx:id="championNameLabel" textFill="#828282" GridPane.columnIndex="1">
                        <font>
                            <Font size="30.0" />
                        </font>
                    </Label>
-                  <ImageView fx:id="championImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER" />
+                  <Label fx:id="lolConnected" text="Connected" textFill="#828282" GridPane.columnIndex="2">
+                       <font>
+                           <Font size="20.0" />
+                       </font>
+                  </Label>
                </children>
                <padding>
                   <Insets bottom="8.0" top="8.0" />
@@ -69,4 +58,21 @@
          </center>
       </BorderPane>
    </center>
+    <bottom>
+        <GridPane fx:id="footer" BorderPane.alignment="CENTER">
+            <columnConstraints>
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            </columnConstraints>
+            <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+            </rowConstraints>
+            <children>
+                <Hyperlink fx:id="donate" text="donate" />
+                <Hyperlink fx:id="contribute" text="contribute" GridPane.columnIndex="1" />
+                <Label text="v1.0.0" textFill="#828282" GridPane.columnIndex="2" />
+            </children>
+        </GridPane>
+    </bottom>
 </BorderPane>
