@@ -54,7 +54,7 @@ public class RuneSelectionController {
 
 		int i = 0;
 		// showing > 3 pages per role is overkill imo
-		while(i < 3 && i < runesMap.get(role).size()) {
+		while(i < 3 && runesMap.get(role).size() > i) {
 			RuneSelection runeSelection = runesMap.get(role).get(i);
 
 			WebView webView = new WebView();
