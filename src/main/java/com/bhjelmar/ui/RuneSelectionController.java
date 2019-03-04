@@ -122,7 +122,7 @@ public class RuneSelectionController {
 
 			webEngine.loadContent(runeSelection.getElement().toString()
 				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
-				.replaceFirst("% <em>", "% Pick Rate_____________<em>")
+				.replaceFirst("% <em>", "% Pick Rate___________<em>")
 				.replaceFirst("%</td>", "% Win Rate </td>")
 				.replaceFirst("</em>", " Games_______</em>"));
 			webEngine.setUserStyleSheetLocation(getClass().getResource("/rune_selection.css").toString());
