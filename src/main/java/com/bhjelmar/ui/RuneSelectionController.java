@@ -31,7 +31,6 @@ public class RuneSelectionController {
 
 	public void initialize() {
 		runesPane.setStyle("-fx-background-color: #3c3f41;");
-		championNameLabel.setText(Main.getChampionName());
 		championNameLabel.setStyle("-fx-background-color: #3c3f41;");
 
 		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
@@ -50,8 +49,8 @@ public class RuneSelectionController {
 	}
 
 	private void createRunesList(String role) {
-//		runesPane.getChildren().removeAll(runesPane.getChildren().stream().filter(e -> e instanceof WebView).collect(Collectors.toList()));
-		runesPane.getChildren().clear();
+		runesPane.getChildren().remove(1, runesPane.getChildren().size());
+		championNameLabel.setText(Main.getChampionName() + " - " + role);
 
 		int i = 0;
 		// showing > 3 pages per role is overkill imo
@@ -77,15 +76,13 @@ public class RuneSelectionController {
 			webView.setOnMouseExited(event -> {
 				webView.setOpacity(.7);
 			});
-			webView.setTranslateY(240 * i);
+			webView.setTranslateY((240 * i) + 40);
 
-			String runeRowHTML = runeSelection.getElement().toString()
+			webEngine.loadContent(runeSelection.getElement().toString()
 				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
-				.replaceFirst("% <em>", "% Pick Rate <em>")
+				.replaceFirst("% <em>", "% Pick Rate_____________<em>")
 				.replaceFirst("%</td>", "% Win Rate </td>")
-				.replaceFirst("</em>", " Games&#9;&#9;&#9;</em>");
-
-			webEngine.loadContent(runeRowHTML);
+				.replaceFirst("</em>", " Games_______</em>"));
 			webEngine.setUserStyleSheetLocation(getClass().getResource("/rune_selection.css").toString());
 
 			runesPane.getChildren().add(webView);

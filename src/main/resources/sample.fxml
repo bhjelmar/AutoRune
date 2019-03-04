@@ -7,24 +7,28 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bhjelmar.ui.RuneSelectionController">
+<BorderPane maxHeight="-Infinity" minHeight="-Infinity" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bhjelmar.ui.RuneSelectionController">
     <!--<top>-->
     <!---->
     <!--</top>-->
     <top>
-        <TabPane fx:id="roleSelection" prefHeight="30.0" prefWidth="900.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
+        <TabPane fx:id="roleSelection" prefHeight="30.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
     </top>
     <center>
         <StackPane fx:id="runesPane" prefHeight="900.0" prefWidth="1600.0" BorderPane.alignment="CENTER">
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-         </padding></StackPane>
+         </padding>
+            <children>
+                <Label fx:id="championNameLabel" alignment="CENTER" maxHeight="10.0" prefWidth="500.0" textFill="#b5b5b5" StackPane.alignment="TOP_CENTER">
+                    <font>
+                        <Font size="36.0" />
+                    </font>
+               <StackPane.margin>
+                  <Insets />
+               </StackPane.margin>
+                </Label>
+            </children>
+        </StackPane>
     </center>
-    <bottom>
-        <Label fx:id="championNameLabel" alignment="CENTER" contentDisplay="CENTER" prefHeight="30.0" prefWidth="500.0" textAlignment="CENTER" textFill="WHITE">
-            <font>
-                <Font size="36.0" />
-            </font>
-        </Label>
-    </bottom>
 </BorderPane>

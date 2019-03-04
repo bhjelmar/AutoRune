@@ -10,6 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Pair;
 import lombok.Data;
 import lombok.Getter;
@@ -44,7 +45,7 @@ public class Main extends Application {
 		APIWrapper apiWrapper = new APIWrapper();
 		apiWrapper.getStaticData();
 
-		championName = "Karthus";
+		championName = "Irelia";
 		runesMap = apiWrapper.getOPGGRunes(championName, apiWrapper.getChampionBySkinName(championName).getChampionId());
 		launch();
 
@@ -165,6 +166,7 @@ public class Main extends Application {
 		primaryStage.setTitle("Rune Selector");
 		Scene scene = new Scene(root, 500, 800);
 		scene.getStylesheets().add("/main.css");
+		primaryStage.setResizable(false);
 		primaryStage.setScene(scene);
 		primaryStage.show();
 	}
