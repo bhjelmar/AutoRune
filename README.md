@@ -12,8 +12,12 @@ You must have one rune page created named "AutoRune" (case insensitive) for this
 
 Currently only working on Windows. If enough people ask for Mac/Linux I'll consider working on that.
 
+## Build from Source
+
+1. Install [Inno Setup 5](http://www.jrsoftware.org/isdl.php#beta)
+
+2. Run ```mvn jfx:native```
+
 ## Legality
 
-As of a 2018, a Rioter stated the use of the rune page APIs to be "not currently disallowed".
-
-https://www.reddit.com/r/leagueoflegends/comments/7q6xku/runesreformed_set_your_runes_automatically/dsnjm0z/
+[As of a 2018, a Rioter stated the use of the rune page APIs to be "not currently disallowed".](https://www.reddit.com/r/leagueoflegends/comments/7q6xku/runesreformed_set_your_runes_automatically/dsnjm0z/)
