@@ -19,7 +19,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLContexts;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
@@ -37,32 +36,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/*
-always show last date of data fetch with update button beside
-if no serialized champ - rune list exists:
-	automatically fetch and serialize
-if serialized list is > 2 weeks old:
-	prompt for update
-eventlistener for champion lock in:
-	get champion they are playing and their assigned role (will pull in all roles from champion.gg but will smart complete to their assigned role)
-	if AutoRune page doesn't exist:
-		if user has no available rune page slots:
-			ask them if/which they would like to overwrite, exit if they choose none
-		else
-			create AutoRune page
-	else
-		deserialize champion - rune list
-		show them all options for their champ
-		apply user selection
- */
-//TODO: serialize/deserialize mechanism for maps
-//TODO: champion select lock in listener
-//TODO: get selected champ and role
-//TODO: delete rune page
-//TODO: post rune page
-//TODO: get list of all current rune pages
-//TODO: UI... lmao
-
 @Log4j2
 public class APIWrapper {
 
@@ -79,24 +52,6 @@ public class APIWrapper {
 	private Pair<String, Map<String, Integer>> versionedSkinIdMap;
 
 	public APIWrapper() {
-		// disable cert checking
-		SSLContext sslcontext = null;
-		try {
-			sslcontext = SSLContexts.custom()
-				.loadTrustMaterial(null, new TrustSelfSignedStrategy())
-				.build();
-		} catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-			log.error(e.getStackTrace());
-		}
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
-		BasicCookieStore cookieStore = new org.apache.http.impl.client.BasicCookieStore();
-		CloseableHttpClient httpclient = HttpClients.custom()
-			.setSSLSocketFactory(sslsf)
-			.setDefaultCookieStore(cookieStore)
-			.build();
-		Unirest.setHttpClient(httpclient);
-
-
 		// Override default UniRest mapper for use with custom POJOs
 		Unirest.setObjectMapper(new ObjectMapper() {
 			private com.fasterxml.jackson.databind.ObjectMapper jacksonObjectMapper
@@ -118,6 +73,21 @@ public class APIWrapper {
 				}
 			}
 		});
+
+		// disable cert checking
+		SSLContext sslcontext = null;
+		try {
+			sslcontext = SSLContexts.custom()
+					.loadTrustMaterial(null, new TrustSelfSignedStrategy())
+					.build();
+		} catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+			log.error(e.getStackTrace());
+		}
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
+		CloseableHttpClient httpclient = HttpClients.custom()
+				.setSSLSocketFactory(sslsf)
+				.build();
+		Unirest.setHttpClient(httpclient);
 	}
 
 	public boolean getStaticData() {
@@ -189,10 +159,9 @@ public class APIWrapper {
 	}
 
 	public List<RunePage> getPages() {
-		createFakeTrustManager();
 		HttpResponse<String> response;
 		try {
-			log.debug(LoLClient.GET_RUNE_PAGE.getPath());
+			log.debug(LoLClient.GET_RUNE_PAGE.getPath().replaceAll("\\{port}", port));
 			response = Unirest.get(LoLClient.GET_RUNE_PAGE.getPath())
 				.routeParam("port", port)
 				.basicAuth("riot", remotingAuthToken)
@@ -291,81 +260,8 @@ public class APIWrapper {
 		versionedIdChampionMap = Pair.of(currentLOLVersion, idChampionMap);
 	}
 
-	//	private void pprintRunePage(RunePage runePage) {
-////		//primary
-////		System.out.println("primary runes");
-////		for(RuneTree runeTree : runeTrees) {
-////			if(runePage.getPrimaryStyleId() == runeTree.getId()) {
-////				System.out.println(runeTree.getName());
-//////				for(Rune rune : runeTree.getRunes()) {
-//////					if(runePage.getSelectedPerkIds().contains(rune.getId())) {
-//////						System.out.println(rune.getName());
-//////					}
-//////				}
-////			}
-////		}
-////		//secondary
-////		System.out.println("secondary runes");
-////		for(RuneTree runeTree : runeTrees) {
-////			if(runePage.getSubStyleId() == runeTree.getId()) {
-////				System.out.println(runeTree.getName());
-//////				for(Rune rune : runeTree.getRunes()) {
-//////					if(runePage.getSelectedPerkIds().contains(rune.getId())) {
-//////						System.out.println(rune.getName());
-//////					}
-//////				}
-////			}
-////		}
-////	}
-
-//	private void getAllRunes() {
-//		log.debug("Getting Runes Reforged from {}", RiotAPI.RUNES_REFORGED.getPath().replaceAll("\\{currentLOLVersion}", currentLOLVersion));
-//		HttpResponse<String> response;
-//		try {
-//			response = Unirest.get(RiotAPI.RUNES_REFORGED.getPath())
-//				.routeParam("currentLOLVersion", currentLOLVersion)
-//				.asString();
-//			if(response.getStatus() != 200) {
-//				log.error(response.getStatusText());
-//			} else {
-//				Gson gson = new GsonBuilder().create();
-//				runeTrees = gson.fromJson(response.getBody(), new TypeToken<List<RuneTree>>(){}.getType());
-//			}
-//		} catch(UnirestException e) {
-//			log.error(e.getMessage());
-//		}
-//	}
-
-//	private void getCGGRunes() {
-//		String stringUrl = "http://api.champion.gg/v2/champions?champData=hashes&limit=1000&api_key=" + cggAPIKey;
-//		log.info("Getting rune information from champion.gg's API: " + stringUrl);
-//		StringBuffer result = makeHTTPCall(stringUrl, "GET", null);
-//		JSONArray jsonArray = new JSONArray(result.toString());
-//		for(Object o : jsonArray) {
-//			if(o instanceof JSONObject) {
-//				JSONObject champJSONObject = (JSONObject) o;
-//				JSONObject _id = (JSONObject) champJSONObject.get("_id");
-//				int id = (int) _id.get("championId");
-//				Champion champion = idChampionMap.get(id);
-//				String role = (String) _id.get("role");
-//				role = role.equals("DUO_CARRY") ? "ADC" : role;
-//				role = role.equals("DUO_SUPPORT") ? "SUPPORT" : role;
-//				try {
-//					JSONObject runehash = (JSONObject) ((JSONObject) champJSONObject.get("hashes")).get("runehash");
-//					List<String> highestCount = Arrays.asList(((String) ((JSONObject) runehash.get("highestCount")).get("hash")).split("-"));
-//					List<String> highestWinrate = Arrays.asList(((String) ((JSONObject) runehash.get("highestWinrate")).get("hash")).split("-"));
-//					champion.addToMostFrequentRuneRoleMap(role, highestCount);
-//					champion.addToHighestWinRuneRoleMap(role, highestWinrate);
-//				} catch(Exception e) {
-//					log.info("no rune data for " + champion.getName() + " " + role);
-//				}
-//			}
-//		}
-//	}
-
-	public Map<String, List<RuneSelection>> getOPGGRunes(String championName, long championId) {
-		String url = RuneAPI.OPGG_ROLES.getPath().replaceAll("\\{championName}", championName).replaceAll("\\{role}", "mid");
-//		url = url.substring(0, url.indexOf("{"));
+	public Map<String, List<RuneSelection>> getOPGGRunes(Champion champion) {
+		String url = RuneAPI.OPGG_ROLES.getPath().replaceAll("\\{championName}", champion.getName()).replaceAll("\\{role}", "mid");
 		// op.gg will autocomplete the url for us but it takes ages to load... if we do every lookup for the champion's mid page the load times are way faster
 
 		Map<String, List<RuneSelection>> roleRuneSelectionMap = new HashMap<>();
@@ -374,13 +270,13 @@ public class APIWrapper {
 			Document doc = Jsoup.connect(url).timeout(0).get();
 			log.debug("Finished fetch");
 			if(doc.getElementsByClass("champion-stats-position").isEmpty()) {
-				log.error("Unable to fetch runes for Champion: {}", championName);
+				log.error("Unable to fetch runes for Champion: {}", champion.getName());
 			} else {
 				List<String> roles = doc.getElementsByClass("champion-stats-position").first().getElementsByClass("champion-stats-header__position").stream()
 					.map(e -> e.attr("data-position"))
 					.collect(Collectors.toList());
 				for(String role : roles) {
-					url = RuneAPI.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(championId)).replaceAll("\\{role}", role);
+					url = RuneAPI.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role);
 					log.debug("Getting Champion Rune info from {}", url);
 					doc = Jsoup.connect(url).timeout(0).get();
 
@@ -427,7 +323,7 @@ public class APIWrapper {
 							runeList.add(runeSelection);
 							roleRuneSelectionMap.put(role, runeList);
 						}
-						log.debug(championName + ":" + role + ":" + winRate + ":" + pickRate + ":" + runes + ":" + perks);
+						log.debug(champion.getName() + ":" + role + ":" + winRate + ":" + pickRate + ":" + runes + ":" + perks);
 					}
 				}
 			}
@@ -457,63 +353,6 @@ public class APIWrapper {
 			log.error(e.getStackTrace());
 		}
 		return null;
-	}
-
-//	private StringBuffer makeHTTPCall(String stringUrl, String method, String body) {
-//		StringBuffer content = null;
-//		try {
-//			System.out.println("HTTP " + method + " " + stringUrl);
-//			URL url = new URL(stringUrl);
-//			try {
-//				HttpURLConnection con = (HttpURLConnection) url.openConnection();
-////				con.setConnectTimeout(5000);
-//				con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-//				con.setDoOutput(true);
-//				con.setDoInput(true);
-//				con.setRequestMethod(method);
-//
-////				TODO: this is a bit lazy to do every time we make a rest call
-//				String encoded = Base64.getEncoder().encodeToString(("riot" + ":" + remotingAuthToken).getBytes(StandardCharsets.UTF_8));
-//				con.setRequestProperty("Authorization", "Basic " + encoded);
-//
-//				if(method == "POST") {
-//					OutputStream os = con.getOutputStream();
-//					os.write(body.getBytes("UTF-8"));
-//					os.close();
-//				}
-//
-//				BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-//				String inputLine;
-//				content = new StringBuffer();
-//				while((inputLine = in.readLine()) != null) {
-//					content.append(inputLine);
-//				}
-//				System.out.println("HTTP status response code: " + con.getResponseCode());
-//				in.close();
-//			} catch(IOException e) {
-//				log.error(e.getStackTrace());
-//			}
-//		} catch(MalformedURLException e) {
-//			log.error(e.getStackTrace());
-//		}
-//		return content;
-//	}
-
-	private void createFakeTrustManager() {
-		// disable cert checking
-		SSLContext sslcontext = null;
-		try {
-			sslcontext = SSLContexts.custom()
-				.loadTrustMaterial(null, new TrustSelfSignedStrategy())
-				.build();
-		} catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-			log.error(e.getStackTrace());
-		}
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
-		CloseableHttpClient httpclient = HttpClients.custom()
-			.setSSLSocketFactory(sslsf)
-			.build();
-		Unirest.setHttpClient(httpclient);
 	}
 
 	@Getter

@@ -1,10 +1,37 @@
+html {
+    font-family: sans-serif;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+}
+
 body {
     margin: 0;
     background: #2b2b2b;
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    color: #828282;
+}
+
+.rune-page {
+    position: relative;
+    width: 445px;
+    height: 445px;
+    background-image: url("../images/img-runesbg.png");
+    background-size: 100%;
+}
+
+
 .perk-page__title-container {
-    display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
 }
 
@@ -28,11 +55,16 @@ body {
 .perk-page-wrap {
     font-size: 0;
     text-align: center;
-    display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
     justify-content: space-between;
+    -webkit-box-align: end;
+    -ms-flex-align: end;
     align-items: flex-end;
     padding: 10px;
-    background: #2b2b2b;
 }
 
 .perk-page-wrap:after {
@@ -45,11 +77,15 @@ body {
 }
 
 .perk-page-wrap.perk-page-wrap--build {
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
     padding-top: 12px;
 }
 
 .perk-page-wrap--popup {
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
 }
 
@@ -65,7 +101,8 @@ body {
     margin-bottom: 10px;
 }
 
-.champion-overview__data .perk-page-wrap, .champion-stats__table .perk-page-wrap {
+.champion-overview__data .perk-page-wrap,
+.champion-stats__table .perk-page-wrap {
     text-align: left;
 }
 
@@ -149,14 +186,25 @@ body {
 }
 
 .fragment-page {
-    display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: end;
+    -ms-flex-align: end;
     align-items: flex-end;
     margin: 0px 8px 4px 4px;
 }
 
 .fragment-page > .fragment__summary {
-    display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
     flex-direction: column;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
     align-items: center;
 }
 
@@ -165,7 +213,9 @@ body {
 }
 
 .fragment-page > .fragment__detail > .fragment__row {
-    display: -webkit-flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
     margin-top: 16px;
 }
 
@@ -198,9 +248,4 @@ body {
     width: 1px;
     height: 16px;
     background-color: #e5e5e5;
-}
-
-.champion-stats__table__cell--pickrate {
-    font-weight: bold;
-    color: #FFFFFF;
 }

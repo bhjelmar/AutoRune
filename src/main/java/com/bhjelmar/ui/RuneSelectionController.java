@@ -3,17 +3,16 @@ package com.bhjelmar.ui;
 import com.bhjelmar.Main;
 import com.bhjelmar.data.RuneSelection;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.Pair;
@@ -47,16 +46,14 @@ public class RuneSelectionController {
 
 	public void initialize() {
 		window.setStyle("-fx-background-image: url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
-			Main.getChampionName() +
-			"_0.jpg');");
+				Main.getChampion().getName() +
+				"_" +
+				Main.getChampion().getSkins().indexOf(Main.getSkinName()) +
+				".jpg');");
 
 		footer.setStyle("-fx-background-color: #2b2b2b;");
 		header.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.setSpacing(10);
-
-//		roleSelection.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
-//		roleSelection.tabMinWidthProperty().set(100);
-//		roleSelection.tabMaxWidthProperty().set(100);
 
 		runesMap = Main.getRunesMap();
 		for(String role : runesMap.keySet()) {
@@ -85,13 +82,10 @@ public class RuneSelectionController {
 	}
 
 	private void createRunesList(String role) {
-//		runesPane.getChildren().remove(1, runesPane.getChildren().size());
-//		GridPane gp = ((GridPane)runesPane.getChildren().get(0));
-//		gp.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.getChildren().clear();
 
-		championNameLabel.setText(Main.getChampionName());
-		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + Main.getChampionName() + ".png"));
+		championNameLabel.setText(Main.getChampion().getName());
+		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + Main.getChampion().getName() + ".png"));
 		championImage.setFitHeight(30);
 		championImage.setFitWidth(30);
 
@@ -102,9 +96,8 @@ public class RuneSelectionController {
 
 			WebView webView = new WebView();
 			WebEngine webEngine = webView.getEngine();
-			webView.setMaxSize(479, 250);
 			webView.setId(role + ":" + i);
-			webView.setOpacity(.85);
+			webView.setOpacity(.70);
 			webView.setOnMouseClicked(event -> {
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
@@ -114,21 +107,29 @@ public class RuneSelectionController {
 				Platform.exit();
 			});
 			webView.setOnMouseEntered(event -> {
-				webView.setOpacity(.90);
-			});
-			webView.setOnMouseExited(event -> {
 				webView.setOpacity(.85);
 			});
+			webView.setOnMouseExited(event -> {
+				webView.setOpacity(.70);
+			});
 
-			webEngine.loadContent(runeSelection.getElement().toString()
-				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
-				.replaceFirst("% <em>", "% Pick Rate___________<em>")
-				.replaceFirst("%</td>", "% Win Rate </td>")
-				.replaceFirst("</em>", " Games_______</em>"));
-			webEngine.setUserStyleSheetLocation(getClass().getResource("/rune_selection.css").toString());
+			StringBuilder html = new StringBuilder();
+			html.append("<div class=\"tabItem ChampionKeystoneRune-All\" data-tab-data-url=\"/champion/ajax/statistics/runeList/championId=32&amp;position=JUNGLE\" style=\"display: block;\"><table class=\"champion-stats__table champion-stats__table--rune sortable tablesorter tablesorter-default\" role=\"grid\">");
+			html.append("<tbody aria-live=\"polite\" aria-relevant=\"all\">");
+			html.append(runeSelection.getElement().toString()
+					.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
+					.replaceAll("champion-stats__table__cell--pickrate\"> ", "champion-stats__table__cell--pickrate\">&emsp;&emsp;")
+					.replaceAll("<em>", " Playrate<br><br><em>&emsp;&emsp;")
+					.replaceAll("</em>", "</em> Games")
+					.replaceAll("</td> \n" +
+							" <td class=\"champion-stats__table__cell champion-stats__table__cell--winrate\">", "<br><br>&emsp;&emsp;")
+					.replaceAll("%</td>", "% Winrate"));
+			html.append("</tbody></table></div>");
+
+			webEngine.loadContent(html.toString());
+			webEngine.setUserStyleSheetLocation(getClass().getResource("/runetable.css").toString());
 
 			runesPane.getChildren().add(webView);
-
 			i++;
 		}
 	}
