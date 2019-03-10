@@ -26,9 +26,9 @@ import java.util.Map;
 @Log4j2
 public class Main extends Application {
 
-	private static boolean debug = true;
+	private static boolean debug = false;
 	@Getter
-	private static String skinName = "Super Galaxy Rumble";
+	private static String skinName = "Dragon Trainer Lulu";
 
 	@Getter
 	private static Map<String, List<RuneSelection>> runesMap;
@@ -95,7 +95,7 @@ public class Main extends Application {
 				String approxChampName = windowScraper.update();
 				if(!approxChampName.equals("") && prevChampNameScraped.equals("")) {
 					log.debug("Name scraped from screenshot: {}", approxChampName);
-					Champion champion = apiWrapper.getChampionBySkinName(approxChampName);
+					champion = apiWrapper.getChampionBySkinName(approxChampName);
 					if(champion == null) {
 						log.debug("Cannot find champion with name: {}", approxChampName);
 						int minLevenshteinDistance = Integer.MAX_VALUE;
@@ -108,6 +108,7 @@ public class Main extends Application {
 							}
 						}
 						log.debug("Closest match to {} is {}", approxChampName, closestChampionName);
+						skinName = closestChampionName;
 						champion = apiWrapper.getChampionBySkinName(closestChampionName);
 					} else {
 						champion = apiWrapper.getChampionBySkinName(approxChampName);
@@ -124,7 +125,6 @@ public class Main extends Application {
 								.orElse(null);
 
 						runesMap = apiWrapper.getOPGGRunes(champion);
-						skinName = champion.getName();
 						launch();
 
 						if(apiPage != null) {

@@ -173,7 +173,7 @@ public class APIWrapper {
 				return Arrays.asList(gson.fromJson(response.getBody(), RunePage[].class));
 			}
 		} catch(UnirestException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		return new ArrayList<>();
 	}
@@ -204,7 +204,7 @@ public class APIWrapper {
 				}
 			}
 		} catch(UnirestException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		return false;
 	}
@@ -328,7 +328,7 @@ public class APIWrapper {
 				}
 			}
 		} catch(IOException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		log.debug("----------");
 		return roleRuneSelectionMap;

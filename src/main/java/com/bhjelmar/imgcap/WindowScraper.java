@@ -1,6 +1,5 @@
 package com.bhjelmar.imgcap;
 
-import com.bhjelmar.Main;
 import com.sun.jna.Native;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -25,19 +24,14 @@ public class WindowScraper {
 	WindowInfo w;
 	Tesseract instance;
 
-	public WindowScraper() {
+	public WindowScraper() throws IOException, URISyntaxException {
 		instance = new Tesseract();
+		log.info("getting resource");
+		URL resource = getClass().getResource("/tessdata");
 
-		URL resource = Main.class.getResource("/tessdata");
-		File dataFolder = null;
-		try {
-			dataFolder = Paths.get(resource.toURI()).toFile();
-			instance.setDatapath(dataFolder.getAbsolutePath());
-			instance.setLanguage("eng");
-//			instance.setTessVariable("tessedit_char_whitelist", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!'");
-		} catch(URISyntaxException e) {
-			e.printStackTrace();
-		}
+		File dataFolder = Paths.get(resource.toURI()).toFile();
+		instance.setDatapath(dataFolder.getAbsolutePath());
+		instance.setLanguage("eng");
 	}
 
 	public void findWindow(String windowTitle) {

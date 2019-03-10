@@ -68,15 +68,15 @@ public class RuneSelectionController {
 		donate.setOnAction(event -> {
 			try {
 				Desktop.getDesktop().browse(new URI("https://www.paypal.me/bhjelmar"));
-			} catch (IOException | URISyntaxException e1) {
-				e1.printStackTrace();
+			} catch(IOException | URISyntaxException e) {
+				log.error(e);
 			}
 		});
 		contribute.setOnAction(event -> {
 			try {
 				Desktop.getDesktop().browse(new URI("https://github.com/bhjelmar/autorune"));
-			} catch (IOException | URISyntaxException e1) {
-				e1.printStackTrace();
+			} catch(IOException | URISyntaxException e) {
+				log.error(e);
 			}
 		});
 	}
@@ -84,7 +84,7 @@ public class RuneSelectionController {
 	private void createRunesList(String role) {
 		runesPane.getChildren().clear();
 
-		championNameLabel.setText(Main.getChampion().getName());
+		championNameLabel.setText(Main.getChampion().getName() + " Locked In");
 		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + Main.getChampion().getName() + ".png"));
 		championImage.setFitHeight(30);
 		championImage.setFitWidth(30);

@@ -14,6 +14,12 @@
 
     <build>
         <finalName>AutoRune</finalName>
+        <!--<resources>-->
+        <!--<resource>-->
+        <!--<directory>src/main/resources</directory>-->
+        <!--<targetPath>../jfx/app/resources</targetPath>-->
+        <!--</resource>-->
+        <!--</resources>-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
