@@ -12,9 +12,14 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 @Log4j2
@@ -24,14 +29,32 @@ public class WindowScraper {
 	WindowInfo w;
 	Tesseract instance;
 
-	public WindowScraper() throws IOException, URISyntaxException {
+	public WindowScraper() {
 		instance = new Tesseract();
-		log.info("getting resource");
-		URL resource = getClass().getResource("/tessdata");
+		log.info("getting resource: {}", getClass().getResource("/tessdata"));
+		try {
+			URI uri = getClass().getResource("/tessdata").toURI();
 
-		File dataFolder = Paths.get(resource.toURI()).toFile();
-		instance.setDatapath(dataFolder.getAbsolutePath());
-		instance.setLanguage("eng");
+			// https://stackoverflow.com/questions/22605666/java-access-files-in-jar-causes-java-nio-file-filesystemnotfoundexception
+			if("jar".equals(uri.getScheme())){
+				for (FileSystemProvider provider: FileSystemProvider.installedProviders()) {
+					if (provider.getScheme().equalsIgnoreCase("jar")) {
+						try {
+							provider.getFileSystem(uri);
+						} catch (FileSystemNotFoundException e) {
+							// in this case we need to initialize it first:
+							provider.newFileSystem(uri, Collections.emptyMap());
+						}
+					}
+				}
+			}
+			Path source = Paths.get(uri);
+
+			instance.setDatapath(source.toString());
+			instance.setLanguage("eng");
+		} catch (URISyntaxException | FileSystemNotFoundException | IOException e) {
+			log.error(e.getLocalizedMessage(), e);
+		}
 	}
 
 	public void findWindow(String windowTitle) {
