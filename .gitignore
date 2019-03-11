@@ -6,7 +6,6 @@
 # Intellij files
 /.idea/
 *.iml
-*.editorconfig
 
 # MAC
 *.DS_STORE
