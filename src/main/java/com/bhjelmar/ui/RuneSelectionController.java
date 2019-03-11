@@ -118,11 +118,11 @@ public class RuneSelectionController {
 			html.append("<tbody aria-live=\"polite\" aria-relevant=\"all\">");
 			html.append(runeSelection.getElement().toString()
 					.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
-					.replaceAll("champion-stats__table__cell--pickrate\"> ", "champion-stats__table__cell--pickrate\">&emsp;&emsp;")
-					.replaceAll("<em>", " Playrate<br><br><em>&emsp;&emsp;")
+					.replaceAll("champion-stats__table__cell--pickrate\"> ", "champion-stats__table__cell--pickrate\">&emsp;")
+					.replaceAll("<em>", " Playrate<br><br><em>&emsp;")
 					.replaceAll("</em>", "</em> Games")
 					.replaceAll("</td> \n" +
-							" <td class=\"champion-stats__table__cell champion-stats__table__cell--winrate\">", "<br><br>&emsp;&emsp;")
+							" <td class=\"champion-stats__table__cell champion-stats__table__cell--winrate\">", "<br><br>&emsp;")
 					.replaceAll("%</td>", "% Winrate"));
 			html.append("</tbody></table></div>");
 
