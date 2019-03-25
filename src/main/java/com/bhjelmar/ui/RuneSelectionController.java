@@ -13,6 +13,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.Pair;
@@ -20,6 +22,7 @@ import lombok.Data;
 import lombok.extern.log4j.Log4j2;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -41,10 +44,25 @@ public class RuneSelectionController {
 	public BorderPane window;
 	public Label lolConnected;
 
+	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
+
+	private static Media buttonPressed = new Media(new File(classLoader.getResource("buttonPressed.wav").getFile()).toURI().toString());
+	private static Media buttonReleased = new Media(new File(classLoader.getResource("buttonReleased.wav").getFile()).toURI().toString());
+	private static MediaPlayer buttonPressedPlayer = new MediaPlayer(buttonPressed);
+	private static MediaPlayer buttonReleasedPlayer = new MediaPlayer(buttonReleased);
+
 	@FXML
 	private TabPane roleSelection;
 
+	private static void playAudio(MediaPlayer mediaPlayer) {
+		mediaPlayer.stop();
+		mediaPlayer.play();
+	}
+
 	public void initialize() {
+		buttonReleasedPlayer.setVolume(.5);
+		buttonPressedPlayer.setVolume(.5);
+
 		window.setStyle("-fx-background-image: url('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
 				Main.getChampion().getName() +
 				"_" +
@@ -61,6 +79,8 @@ public class RuneSelectionController {
 		}
 
 		createRunesList(runesMap.keySet().iterator().next());
+		roleSelection.setOnMousePressed(event -> playAudio(buttonPressedPlayer));
+		roleSelection.setOnMouseReleased(event -> playAudio(buttonReleasedPlayer));
 		roleSelection.getSelectionModel().selectedItemProperty().addListener(
 			(ov, t, t1) -> createRunesList(t1.getText())
 		);
@@ -109,9 +129,9 @@ public class RuneSelectionController {
 			webView.setOnMouseEntered(event -> {
 				webView.setOpacity(.85);
 			});
-			webView.setOnMouseExited(event -> {
-				webView.setOpacity(.70);
-			});
+			webView.setOnMouseExited(event -> webView.setOpacity(.70));
+			webView.setOnMousePressed(event -> playAudio(buttonReleasedPlayer));
+			webView.setOnMouseReleased(event -> playAudio(buttonReleasedPlayer));
 
 			StringBuilder html = new StringBuilder();
 			html.append("<div class=\"tabItem ChampionKeystoneRune-All\" data-tab-data-url=\"/champion/ajax/statistics/runeList/championId=32&amp;position=JUNGLE\" style=\"display: block;\"><table class=\"champion-stats__table champion-stats__table--rune sortable tablesorter tablesorter-default\" role=\"grid\">");

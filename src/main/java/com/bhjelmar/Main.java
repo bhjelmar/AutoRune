@@ -26,9 +26,9 @@ import java.util.Map;
 @Log4j2
 public class Main extends Application {
 
-	private static boolean debug = false;
+	private static boolean debug = true;
 	@Getter
-	private static String skinName = "Dragon Trainer Lulu";
+	private static String skinName = "FIREFOX";
 
 	@Getter
 	private static Map<String, List<RuneSelection>> runesMap;
@@ -50,6 +50,18 @@ public class Main extends Application {
 		apiWrapper.getStaticData();
 
 		if(debug) {
+			int minLevenshteinDistance = Integer.MAX_VALUE;
+			String closestSkinName = null;
+			for(String champName : apiWrapper.getVersionedSkinIdMap().getRight().keySet()) {
+				int currLevenshteinDistance = StringUtils.getLevenshteinDistance(champName, skinName);
+				if(currLevenshteinDistance < minLevenshteinDistance) {
+					minLevenshteinDistance = currLevenshteinDistance;
+					closestSkinName = champName;
+				}
+			}
+			log.debug("Closest match to {} is {}", skinName, closestSkinName);
+			skinName = closestSkinName;
+
 			champion = apiWrapper.getChampionBySkinName(skinName);
 			runesMap = apiWrapper.getOPGGRunes(champion);
 			launch();
@@ -99,17 +111,17 @@ public class Main extends Application {
 					if(champion == null) {
 						log.debug("Cannot find champion with name: {}", approxChampName);
 						int minLevenshteinDistance = Integer.MAX_VALUE;
-						String closestChampionName = null;
+						String closestSkinName = null;
 						for(String champName : apiWrapper.getVersionedSkinIdMap().getRight().keySet()) {
 							int currLevenshteinDistance = StringUtils.getLevenshteinDistance(champName, approxChampName);
 							if(currLevenshteinDistance < minLevenshteinDistance) {
 								minLevenshteinDistance = currLevenshteinDistance;
-								closestChampionName = champName;
+								closestSkinName = champName;
 							}
 						}
-						log.debug("Closest match to {} is {}", approxChampName, closestChampionName);
-						skinName = closestChampionName;
-						champion = apiWrapper.getChampionBySkinName(closestChampionName);
+						log.debug("Closest match to {} is {}", approxChampName, closestSkinName);
+						skinName = closestSkinName;
+						champion = apiWrapper.getChampionBySkinName(closestSkinName);
 					} else {
 						champion = apiWrapper.getChampionBySkinName(approxChampName);
 					}
