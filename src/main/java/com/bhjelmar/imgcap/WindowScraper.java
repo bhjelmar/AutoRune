@@ -79,7 +79,7 @@ public class WindowScraper {
 			try {
 				image = new Robot().createScreenCapture(new Rectangle(w.rect.left, w.rect.top, w.rect.right - w.rect.left, w.rect.bottom - w.rect.top));
 			} catch(AWTException e) {
-				log.error(e.getStackTrace());
+				log.error(e.getLocalizedMessage(), e);
 			}
 			String result;
 			if(captureLoLClient(image, true)) {
@@ -105,7 +105,7 @@ public class WindowScraper {
 			result = instance.doOCR(image);
 //			log.debug(result);
 		} catch(TesseractException e) {
-			e.printStackTrace();
+			log.error(e.getLocalizedMessage(), e);
 		}
 		return result;
 	}
@@ -159,7 +159,7 @@ int a_x;
 				File outFile = new File("temp.png");
 				ImageIO.write(image, "png", outFile);
 			} catch(IOException e) {
-				e.printStackTrace();
+				log.error(e.getLocalizedMessage(), e);
 			}
 		}
 

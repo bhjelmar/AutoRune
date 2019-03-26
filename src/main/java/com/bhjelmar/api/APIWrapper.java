@@ -81,7 +81,7 @@ public class APIWrapper {
 					.loadTrustMaterial(null, new TrustSelfSignedStrategy())
 					.build();
 		} catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 		}
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
 		CloseableHttpClient httpclient = HttpClients.custom()
@@ -149,7 +149,7 @@ public class APIWrapper {
 			}
 			bufferedreader.close();
 		} catch(IOException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -173,7 +173,7 @@ public class APIWrapper {
 				return Arrays.asList(gson.fromJson(response.getBody(), RunePage[].class));
 			}
 		} catch(UnirestException e) {
-			log.error(e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 		return new ArrayList<>();
 	}
@@ -204,7 +204,7 @@ public class APIWrapper {
 				}
 			}
 		} catch(UnirestException e) {
-			log.error(e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 		return false;
 	}
@@ -253,7 +253,7 @@ public class APIWrapper {
 				}
 			}
 		} catch(UnirestException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 		}
 
 		versionedSkinIdMap = Pair.of(currentLOLVersion, skinIdMap);
@@ -328,7 +328,7 @@ public class APIWrapper {
 				}
 			}
 		} catch(IOException e) {
-			log.error(e);
+			log.error(e.getLocalizedMessage(), e);
 		}
 		log.debug("----------");
 		return roleRuneSelectionMap;
@@ -350,7 +350,7 @@ public class APIWrapper {
 				return versionList.get(0);
 			}
 		} catch(UnirestException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 		}
 		return null;
 	}

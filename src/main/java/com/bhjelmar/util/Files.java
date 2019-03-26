@@ -16,7 +16,7 @@ public class Files {
 			fos.close();
 			log.debug("Serialized data is saved in " + name + ".");
 		} catch(IOException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -29,10 +29,10 @@ public class Files {
 			ois.close();
 			fis.close();
 		} catch(IOException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 			return null;
 		} catch(ClassNotFoundException e) {
-			log.error(e.getStackTrace());
+			log.error(e.getLocalizedMessage(), e);
 			return null;
 		}
 		log.debug("Deserialized " + fileName + " successfully.");

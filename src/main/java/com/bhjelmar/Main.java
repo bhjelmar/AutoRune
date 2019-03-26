@@ -28,7 +28,7 @@ public class Main extends Application {
 
 	private static boolean debug = true;
 	@Getter
-	private static String skinName = "FIREFOX";
+	private static String skinName = "irelia";
 
 	@Getter
 	private static Map<String, List<RuneSelection>> runesMap;
