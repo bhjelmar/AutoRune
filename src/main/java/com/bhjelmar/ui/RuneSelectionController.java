@@ -37,6 +37,7 @@ import java.util.Objects;
 public class RuneSelectionController {
 
 	private static Map<String, List<RuneSelection>> runesMap;
+
 	public Label championNameLabel;
 	public VBox runesPane;
 	public ImageView championImage;
@@ -49,21 +50,14 @@ public class RuneSelectionController {
 
 	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
 
-//	Media buttonPressed = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/buttonPressed.wav")).getFile()).toURI().toString());
-//	Media buttonReleased = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/buttonReleased.wav")).getFile()).toURI().toString());
-//	MediaPlayer buttonPressedPlayer = new MediaPlayer(buttonPressed);
-//	MediaPlayer buttonReleasedPlayer = new MediaPlayer(buttonReleased);
-//	Media mouseHover = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/mouseHover.wav")).getFile()).toURI().toString());
-//	MediaPlayer mouseHoverPlayer = new MediaPlayer(mouseHover);
+	private Media tabSelected = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/tabSelect.wav")).getFile()).toURI().toString());
+	private Media optionSelect = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/selection.wav")).getFile()).toURI().toString());
+	private Media mouseHover = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/mouseHover.wav")).getFile()).toURI().toString());
 
 	@FXML
 	private TabPane roleSelection;
 
 	public void initialize() {
-//		buttonReleasedPlayer.setVolume(.5);
-//		buttonPressedPlayer.setVolume(.5);
-//		mouseHoverPlayer.setVolume(.5);
-
 		String championSplashUrl = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
 				Main.getChampion().getName() + "_" +
 				Main.getChampion().getSkins().indexOf(Main.getSkinName()) + ".jpg";
@@ -78,7 +72,6 @@ public class RuneSelectionController {
 			log.error(e.getLocalizedMessage(), e);
 		}
 
-
 		footer.setStyle("-fx-background-color: #2b2b2b;");
 		header.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.setSpacing(10);
@@ -89,14 +82,9 @@ public class RuneSelectionController {
 		}
 
 		createRunesList(runesMap.keySet().iterator().next());
-//		roleSelection.setOnMousePressed(event -> playAudio(buttonPressedPlayer));
-//		roleSelection.setOnMouseReleased(event -> playAudio(buttonReleasedPlayer));
 		roleSelection.getSelectionModel().selectedItemProperty().addListener(
 			(ov, t, t1) -> {
-				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/tabSelect.wav")).getFile()).toURI().toString());
-				MediaPlayer sound = new MediaPlayer(media);
-				sound.play();
-
+				new MediaPlayer(tabSelected).play();
 				createRunesList(t1.getText());
 			}
 		);
@@ -136,26 +124,21 @@ public class RuneSelectionController {
 			webView.setId(role + ":" + i);
 			webView.setOpacity(.70);
 			webView.setOnMouseClicked(event -> {
-				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/selection.wav")).getFile()).toURI().toString());
-				MediaPlayer sound = new MediaPlayer(media);
-				sound.play();
+				new MediaPlayer(optionSelect).play();
 
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
 				String selectedPage = paneId.substring(paneId.indexOf(":") + 1);
 				Main.setSelectedRoleAndRune(new Pair<>(selectedRole, selectedPage));
 
-//				Platform.exit();
+				Platform.exit();
 			});
 			webView.setOnMouseEntered(event -> {
 				webView.setOpacity(.85);
-				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/mouseHover.wav")).getFile()).toURI().toString());
-				MediaPlayer sound = new MediaPlayer(media);
-				sound.play();
+				new MediaPlayer(mouseHover).play();
 			});
+
 			webView.setOnMouseExited(event -> webView.setOpacity(.70));
-//			webView.setOnMousePressed(event -> playAudio(buttonPressedPlayer));
-//			webView.setOnMouseReleased(event -> playAudio(buttonReleasedPlayer));
 
 			StringBuilder html = new StringBuilder();
 			html.append("<div class=\"tabItem ChampionKeystoneRune-All\" data-tab-data-url=\"/champion/ajax/statistics/runeList/championId=32&amp;position=JUNGLE\" style=\"display: block;\"><table class=\"champion-stats__table champion-stats__table--rune sortable tablesorter tablesorter-default\" role=\"grid\">");
