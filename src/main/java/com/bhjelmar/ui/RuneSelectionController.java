@@ -1,11 +1,13 @@
 package com.bhjelmar.ui;
 
-import com.bhjelmar.Main;
+import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
@@ -19,15 +21,19 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.util.Pair;
+import javafx.stage.Stage;
 import lombok.Data;
+import lombok.Setter;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +42,6 @@ import java.util.Objects;
 @Log4j2
 public class RuneSelectionController {
 
-	private static Map<String, List<RuneSelection>> runesMap;
 	public Label championNameLabel;
 	public VBox runesPane;
 	public ImageView championImage;
@@ -46,6 +51,13 @@ public class RuneSelectionController {
 	public Hyperlink contribute;
 	public BorderPane window;
 	public Label lolConnected;
+
+	private static Map<String, List<RuneSelection>> runesMap;
+	@Setter
+	private static Pair<String, String> selectedRoleAndRune;
+
+	@Setter
+	private Stage stage;
 
 	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
 
@@ -60,13 +72,9 @@ public class RuneSelectionController {
 	private TabPane roleSelection;
 
 	public void initialize() {
-//		buttonReleasedPlayer.setVolume(.5);
-//		buttonPressedPlayer.setVolume(.5);
-//		mouseHoverPlayer.setVolume(.5);
-
 		String championSplashUrl = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
-				Main.getChampion().getName() + "_" +
-				Main.getChampion().getSkins().indexOf(Main.getSkinName()) + ".jpg";
+			StartupController.getChampion().getName() + "_" +
+			StartupController.getChampion().getSkinNum() + ".jpg";
 		try {
 			if(Unirest.get(championSplashUrl).asString().getStatus() == 200) {
 				window.setStyle("-fx-background-image: url('" + championSplashUrl + "');");
@@ -74,17 +82,16 @@ public class RuneSelectionController {
 				log.debug("Unable to find {}", championSplashUrl);
 				window.setStyle("-fx-background-image: url('https://cdn.vox-cdn.com/uploads/chorus_image/image/57522479/Ez_preseason.0.jpg');");
 			}
-		} catch(UnirestException e) {
+		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
-
 
 		footer.setStyle("-fx-background-color: #2b2b2b;");
 		header.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.setSpacing(10);
 
-		runesMap = Main.getRunesMap();
-		for(String role : runesMap.keySet()) {
+		runesMap = StartupController.getRunesMap();
+		for (String role : runesMap.keySet()) {
 			roleSelection.getTabs().add(new Tab(role));
 		}
 
@@ -120,15 +127,15 @@ public class RuneSelectionController {
 	private void createRunesList(String role) {
 		runesPane.getChildren().clear();
 
-		championNameLabel.setText(Main.getChampion().getName() + " Locked In");
-		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + Main.getChampion().getName() + ".png"));
+		championNameLabel.setText(StartupController.getChampion().getName() + " Locked In");
+		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + StartupController.getChampion().getName() + ".png"));
 
 		championImage.setFitHeight(30);
 		championImage.setFitWidth(30);
 
 		int i = 0;
 		// showing > 3 pages per role is overkill imo
-		while(i < 3 && runesMap.get(role).size() > i) {
+		while (i < 3 && runesMap.get(role).size() > i) {
 			RuneSelection runeSelection = runesMap.get(role).get(i);
 
 			WebView webView = new WebView();
@@ -143,13 +150,18 @@ public class RuneSelectionController {
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
 				String selectedPage = paneId.substring(paneId.indexOf(":") + 1);
-				Main.setSelectedRoleAndRune(new Pair<>(selectedRole, selectedPage));
+				selectedRoleAndRune = Pair.of(selectedRole, selectedPage);
 
-//				Platform.exit();
+				createNewPage();
+
+				loadStartupScene();
 			});
 			webView.setOnMouseEntered(event -> {
 				webView.setOpacity(.85);
+
+
 				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/mouseHover.wav")).getFile()).toURI().toString());
+				log.info(new File(Objects.requireNonNull(classLoader.getResource("audio/tabSelect.wav")).getFile()).toURI().toString());
 				MediaPlayer sound = new MediaPlayer(media);
 				sound.play();
 			});
@@ -175,6 +187,66 @@ public class RuneSelectionController {
 
 			runesPane.getChildren().add(webView);
 			i++;
+		}
+	}
+
+	@SneakyThrows
+	private void loadStartupScene() {
+		Thread.sleep(2000);
+
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
+		Parent root = (Parent) loader.load();
+
+		stage.setTitle("AutoRune");
+		stage.getIcons().add(new Image("/icon.png"));
+		Scene scene = new Scene(root, 700, 900);
+		scene.getStylesheets().add("/main.css");
+		stage.setResizable(false);
+		stage.setScene(scene);
+
+
+	}
+
+	private void createNewPage() {
+		List<RunePage> runePageList = StartupController.getApiWrapper().getPages();
+		RunePage apiPage = runePageList.stream()
+			.filter(o -> o.getName()
+				.equalsIgnoreCase("AutoRune"))
+			.findFirst()
+			.orElse(null);
+
+		runesMap = StartupController.getApiWrapper().getOPGGRunes(StartupController.getChampion());
+
+		if (apiPage != null) {
+			String mostFrequentPosition = runesMap.keySet().stream()
+				.findFirst()
+				.orElse(null);
+
+			if (mostFrequentPosition != null) {
+				List<String> runes = runesMap.get(selectedRoleAndRune.getKey()).get(Integer.parseInt(selectedRoleAndRune.getValue())).getRunes();
+				apiPage.setPrimaryStyleId(Integer.parseInt(runes.get(0)));
+				apiPage.setSubStyleId(Integer.parseInt(runes.get(5)));
+				List<Integer> selectedPerkIds = new ArrayList<>();
+				selectedPerkIds.add(Integer.parseInt(runes.get(1)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(2)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(3)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(4)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(6)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(7)));
+				// runes now include perks
+				selectedPerkIds.add(Integer.parseInt(runes.get(8)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(9)));
+				selectedPerkIds.add(Integer.parseInt(runes.get(10)));
+				apiPage.setSelectedPerkIds(selectedPerkIds);
+
+				StartupController.getApiWrapper().replacePage(apiPage.getId(), apiPage);
+
+			} else {
+				log.error("Not enough data for champion {}", StartupController.getChampion().getName());
+			}
+
+		} else {
+			log.error("Cannot find rune page named AutoRune. Please create page.");
 		}
 	}
 

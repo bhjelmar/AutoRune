@@ -14,11 +14,10 @@ import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLContexts;
-import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.json.JSONArray;
@@ -28,11 +27,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.*;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,13 +44,14 @@ public class APIWrapper {
 	@Getter
 	private String pid;
 
-	private String currentLOLVersion;
+//	private String currentLOLVersion;
 
-	@Getter
-	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
-	@Getter
-	private Pair<String, Map<String, Integer>> versionedSkinIdMap;
+//	@Getter
+//	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
+//	@Getter
+//	private Pair<String, Map<Integer, Integer>> versionedSkinIdMap;
 
+	@SneakyThrows
 	public APIWrapper() {
 		// Override default UniRest mapper for use with custom POJOs
 		Unirest.setObjectMapper(new ObjectMapper() {
@@ -60,7 +61,7 @@ public class APIWrapper {
 			public <T> T readValue(String value, Class<T> valueType) {
 				try {
 					return jacksonObjectMapper.readValue(value, valueType);
-				} catch(IOException e) {
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			}
@@ -68,51 +69,49 @@ public class APIWrapper {
 			public String writeValue(Object value) {
 				try {
 					return jacksonObjectMapper.writeValueAsString(value);
-				} catch(JsonProcessingException e) {
+				} catch (JsonProcessingException e) {
 					throw new RuntimeException(e);
 				}
 			}
 		});
 
+
+		TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+			public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+			}
+
+			public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+			}
+
+			public X509Certificate[] getAcceptedIssuers() {
+				return null;
+			}
+		}};
 		// disable cert checking
 		SSLContext sslcontext = null;
-		try {
-			sslcontext = SSLContexts.custom()
-					.loadTrustMaterial(null, new TrustSelfSignedStrategy())
-					.build();
-		} catch(NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-			log.error(e.getLocalizedMessage(), e);
-		}
+
+		sslcontext = SSLContext.getInstance("SSL");
+		sslcontext.init(null, trustAllCerts, new java.security.SecureRandom());
+		HttpsURLConnection.setDefaultSSLSocketFactory(sslcontext.getSocketFactory());
 		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext);
 		CloseableHttpClient httpclient = HttpClients.custom()
-				.setSSLSocketFactory(sslsf)
-				.build();
+			.setSSLSocketFactory(sslsf)
+			.build();
 		Unirest.setHttpClient(httpclient);
 	}
 
-	public boolean getStaticData() {
-		currentLOLVersion = getCurrentLOLVersion();
+	public Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldUpdateStaticData(String currentLOLVersion) {
 		boolean updateData = true;
-		if(new File("versionedIdChampionMap.ser").isFile() && new File("versionedSkinIdMap.ser").isFile()) {
+		Pair<String, Map<Integer, Champion>> versionedIdChampionMap = null;
+		Pair<String, Map<Integer, Integer>> versionedSkinIdMap = null;
+		if (new File("versionedIdChampionMap.ser").isFile() && new File("versionedSkinIdMap.ser").isFile()) {
 			versionedIdChampionMap = Files.deserializeData("versionedIdChampionMap.ser");
 			versionedSkinIdMap = Files.deserializeData("versionedSkinIdMap.ser");
-			if(versionedIdChampionMap.getLeft().equals(currentLOLVersion) && versionedSkinIdMap.getLeft().equals(currentLOLVersion)) {
+			if (versionedIdChampionMap.getLeft().equals(currentLOLVersion) && versionedSkinIdMap.getLeft().equals(currentLOLVersion)) {
 				updateData = false;
 			}
 		}
-		if(updateData) {
-			log.info("updating op.gg rune info and champion skin info for patch {}", currentLOLVersion);
-			getChampionSkinsAndIDs();
-			//TODO: delete old files
-			Files.serializeData(versionedIdChampionMap, "versionedIdChampionMap.ser");
-			Files.serializeData(versionedSkinIdMap, "versionedSkinIdMap.ser");
-		} else {
-			log.info("op.gg rune info and champion skin info already up to date for patch {}", currentLOLVersion);
-		}
-		if(versionedIdChampionMap == null || versionedSkinIdMap == null) {
-			return false;
-		}
-		return true;
+		return Pair.of(updateData, Pair.of(versionedIdChampionMap, versionedSkinIdMap));
 	}
 
 	public void setLoLClientInfo() {
@@ -123,8 +122,8 @@ public class APIWrapper {
 			InputStreamReader inputstreamreader = new InputStreamReader(inputstream, "UTF-8");
 			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
 			String line;
-			while((line = bufferedreader.readLine()) != null) {
-				if(line.contains("LeagueClientUx.exe")) {
+			while ((line = bufferedreader.readLine()) != null) {
+				if (line.contains("LeagueClientUx.exe")) {
 					int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
 					int endOfToken = line.indexOf("\"", beginningOfToken);
 					remotingAuthToken = line.substring(beginningOfToken, endOfToken);
@@ -138,24 +137,31 @@ public class APIWrapper {
 					pid = line.substring(beginningOfPid, endOfPid);
 				}
 			}
-			if(pid == null) {
+			if (pid == null) {
 				log.debug("Cannot find LeagueClientUx pid. Is league process running?");
-			} else if(remotingAuthToken == null) {
+			} else if (remotingAuthToken == null) {
 				log.error("Cannot find LeagueClientUx remoting-auth-token.");
-			} else if(port == null) {
+			} else if (port == null) {
 				log.error("Cannot find LeagueClientUx port.");
 			} else {
 				log.info("Found LeagueClientUx with pid {} port {} auth {}", pid, port, remotingAuthToken);
 			}
 			bufferedreader.close();
-		} catch(IOException e) {
+		} catch (IOException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 	}
 
-	public Champion getChampionBySkinName(String skinName) {
+	public Champion getChampionBySkinName(Pair<String, Map<Integer, Champion>> versionedIdChampionMap, Pair<String, Map<Integer, Integer>> versionedSkinIdMap, String skinName) {
 		log.debug("Getting champion object from skin: " + skinName);
 		return versionedIdChampionMap.getRight().get(versionedSkinIdMap.getRight().get(skinName));
+	}
+
+	public Champion getChampionById(Pair<String, Map<Integer, Champion>> versionedIdChampionMap, int id) {
+		log.debug("Getting champion object by id: " + id);
+		return versionedIdChampionMap.getRight().values().stream()
+			.filter(e -> e.getChampionId() == id)
+			.findFirst().orElse(null);
 	}
 
 	public List<RunePage> getPages() {
@@ -166,13 +172,13 @@ public class APIWrapper {
 				.routeParam("port", port)
 				.basicAuth("riot", remotingAuthToken)
 				.asString();
-			if(response.getStatus() != 200) {
+			if (response.getStatus() != 200) {
 				log.error(response.getStatusText());
 			} else {
 				Gson gson = new GsonBuilder().create();
 				return Arrays.asList(gson.fromJson(response.getBody(), RunePage[].class));
 			}
-		} catch(UnirestException e) {
+		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 		return new ArrayList<>();
@@ -186,7 +192,7 @@ public class APIWrapper {
 				.routeParam("port", port)
 				.basicAuth("riot", remotingAuthToken)
 				.asString();
-			if(response.getStatus() != 204) {
+			if (response.getStatus() != 204) {
 				log.error(response.getStatusText());
 			} else {
 				log.debug("deleted old page");
@@ -196,68 +202,64 @@ public class APIWrapper {
 					.routeParam("port", port)
 					.body(new Gson().toJson(runePage))
 					.asString();
-				if(response.getStatus() != 200) {
+				if (response.getStatus() != 200) {
 					log.error(response.getStatusText());
 				} else {
 					log.info("Successfully replaced Rune Page");
 					return true;
 				}
 			}
-		} catch(UnirestException e) {
+		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 		return false;
 	}
 
-	private void getChampionSkinsAndIDs() {
+	public Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> getChampionSkinsAndIDs(String currentLOLVersion) {
 		log.debug("Getting skin list from {} " + RiotAPI.SKINS.getPath().replaceAll("\\{currentLOLVersion}", currentLOLVersion));
 		HttpResponse<String> response;
 
-		Map<String, Integer> skinIdMap = new HashMap<>();
+		Map<Integer, Integer> skinIdMap = new HashMap<>();
 		Map<Integer, Champion> idChampionMap = new HashMap<>();
 
 		try {
 			response = Unirest.get(RiotAPI.SKINS.getPath())
 				.routeParam("currentLOLVersion", currentLOLVersion)
 				.asString();
-			if(response.getStatus() != 200) {
+			if (response.getStatus() != 200) {
 				log.error(response.getStatusText());
 			} else {
 				JSONObject jsonObject = new JSONObject(response.getBody());
 				JSONObject champions = (JSONObject) jsonObject.get("data");
 
 				Iterator keys = champions.keys();
-				while(keys.hasNext()) {
+				while (keys.hasNext()) {
 					String name = (String) keys.next();
 					JSONObject championJSONObject = champions.getJSONObject(name);
 					JSONArray skins = (JSONArray) championJSONObject.get("skins");
-					int id = Integer.parseInt(championJSONObject.getString("key"));
+					int champId = Integer.parseInt(championJSONObject.getString("key"));
 					List<String> skinsArray = new ArrayList<>();
-					for(Object skinTemp : skins) {
-						if(skinTemp instanceof JSONObject) {
+					for (Object skinTemp : skins) {
+						if (skinTemp instanceof JSONObject) {
 							JSONObject skinJSONObject = (JSONObject) skinTemp;
-							String skinName = skinJSONObject.getString("name");
-							if(skinName.equals("default")) {
-								skinName = name;
-							}
-							skinsArray.add(skinName);
-							skinIdMap.put(skinName, id);
+							int skinId = Integer.parseInt(skinJSONObject.getString("id"));
+							int skinNum = skinJSONObject.getInt("num");
+
+							skinIdMap.put(skinId, skinNum);
 						}
 					}
 					Champion champion = new Champion();
-					champion.setChampionId(id);
+					champion.setChampionId(champId);
 					champion.setName(name);
-					champion.setSkins(skinsArray);
 
-					idChampionMap.put(id, champion);
+					idChampionMap.put(champId, champion);
 				}
 			}
-		} catch(UnirestException e) {
+		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 
-		versionedSkinIdMap = Pair.of(currentLOLVersion, skinIdMap);
-		versionedIdChampionMap = Pair.of(currentLOLVersion, idChampionMap);
+		return Pair.of(Pair.of(currentLOLVersion, idChampionMap), Pair.of(currentLOLVersion, skinIdMap));
 	}
 
 	public Map<String, List<RuneSelection>> getOPGGRunes(Champion champion) {
@@ -269,13 +271,13 @@ public class APIWrapper {
 			log.debug("Getting Champion role info from {}", url.substring(0, url.indexOf("/mid/rune")));
 			Document doc = Jsoup.connect(url).timeout(0).get();
 			log.debug("Finished fetch");
-			if(doc.getElementsByClass("champion-stats-position").isEmpty()) {
+			if (doc.getElementsByClass("champion-stats-position").isEmpty()) {
 				log.error("Unable to fetch runes for Champion: {}", champion.getName());
 			} else {
 				List<String> roles = doc.getElementsByClass("champion-stats-position").first().getElementsByClass("champion-stats-header__position").stream()
 					.map(e -> e.attr("data-position"))
 					.collect(Collectors.toList());
-				for(String role : roles) {
+				for (String role : roles) {
 					url = RuneAPI.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role);
 					log.debug("Getting Champion Rune info from {}", url);
 					doc = Jsoup.connect(url).timeout(0).get();
@@ -285,7 +287,7 @@ public class APIWrapper {
 					Element runesTable = doc.select("table").get(0);
 					Elements runesRows = runesTable.select("tr");
 					runesRows.remove(0); // header
-					for(Element runesRow : runesRows) {
+					for (Element runesRow : runesRows) {
 						List<String> mainTree = runesRow.getElementsByClass("perk-page__item--mark").stream()
 							.map(e -> {
 								String imgUrl = e.select("img").first().absUrl("src");
@@ -314,7 +316,7 @@ public class APIWrapper {
 						double winRate = Double.parseDouble(runesRow.getElementsByClass("champion-stats__table__cell--winrate").get(0).text().replaceAll("%", ""));
 
 						RuneSelection runeSelection = new RuneSelection(runesRow, runes, pickRate, winRate);
-						if(roleRuneSelectionMap.get(role) != null) {
+						if (roleRuneSelectionMap.get(role) != null) {
 							List<RuneSelection> prev = roleRuneSelectionMap.get(role);
 							prev.add(runeSelection);
 							roleRuneSelectionMap.put(role, prev);
@@ -327,20 +329,20 @@ public class APIWrapper {
 					}
 				}
 			}
-		} catch(IOException e) {
+		} catch (IOException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 		log.debug("----------");
 		return roleRuneSelectionMap;
 	}
 
-	private String getCurrentLOLVersion() {
+	public String getCurrentLOLVersion() {
 		log.debug("Getting Current LoL version from {}", RiotAPI.VERSION.getPath());
 		HttpResponse<String> response;
 		try {
 			response = Unirest.get(RiotAPI.VERSION.getPath())
 				.asString();
-			if(response.getStatus() != 200) {
+			if (response.getStatus() != 200) {
 				log.error(response.getStatusText());
 			} else {
 				Gson gson = new GsonBuilder().create();
@@ -349,7 +351,7 @@ public class APIWrapper {
 				log.info("Current LoL version is {}", versionList.get(0));
 				return versionList.get(0);
 			}
-		} catch(UnirestException e) {
+		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
 		return null;
