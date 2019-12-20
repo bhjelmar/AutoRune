@@ -3,6 +3,7 @@ package com.bhjelmar.api;
 import com.bhjelmar.data.Champion;
 import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
+import com.bhjelmar.ui.StartupController;
 import com.bhjelmar.util.Files;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.gson.Gson;
@@ -114,8 +115,9 @@ public class APIWrapper {
 		return Pair.of(updateData, Pair.of(versionedIdChampionMap, versionedSkinIdMap));
 	}
 
-	public void setLoLClientInfo() {
+	public Pair<String, StartupController.Severity> setLoLClientInfo() {
 		Runtime runtime = Runtime.getRuntime();
+		Pair<String, StartupController.Severity> message;
 		try {
 			Process proc = runtime.exec(System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
 			InputStream inputstream = proc.getInputStream();
@@ -138,18 +140,19 @@ public class APIWrapper {
 				}
 			}
 			if (pid == null) {
-				log.debug("Cannot find LeagueClientUx pid. Is league process running?");
+				message = Pair.of("Cannot find LeagueClientUx pid. Is league process running?", StartupController.Severity.DEBUG);
 			} else if (remotingAuthToken == null) {
-				log.error("Cannot find LeagueClientUx remoting-auth-token.");
+				message = Pair.of("Cannot find LeagueClientUx remoting-auth-token.", StartupController.Severity.ERROR);
 			} else if (port == null) {
-				log.error("Cannot find LeagueClientUx port.");
+				message = Pair.of("Cannot find LeagueClientUx port.", StartupController.Severity.ERROR);
 			} else {
-				log.info("Found LeagueClientUx with pid {} port {} auth {}", pid, port, remotingAuthToken);
+				message = Pair.of("Found LeagueClientUx process", StartupController.Severity.INFO);
 			}
 			bufferedreader.close();
 		} catch (IOException e) {
-			log.error(e.getLocalizedMessage(), e);
+			message = Pair.of(e.getLocalizedMessage(), StartupController.Severity.ERROR);
 		}
+		return message;
 	}
 
 	public Champion getChampionBySkinName(Pair<String, Map<Integer, Champion>> versionedIdChampionMap, Pair<String, Map<Integer, Integer>> versionedSkinIdMap, String skinName) {
@@ -232,13 +235,12 @@ public class APIWrapper {
 				JSONObject jsonObject = new JSONObject(response.getBody());
 				JSONObject champions = (JSONObject) jsonObject.get("data");
 
-				Iterator keys = champions.keys();
+				Iterator<String> keys = champions.keys();
 				while (keys.hasNext()) {
-					String name = (String) keys.next();
+					String name = keys.next();
 					JSONObject championJSONObject = champions.getJSONObject(name);
 					JSONArray skins = (JSONArray) championJSONObject.get("skins");
 					int champId = Integer.parseInt(championJSONObject.getString("key"));
-					List<String> skinsArray = new ArrayList<>();
 					for (Object skinTemp : skins) {
 						if (skinTemp instanceof JSONObject) {
 							JSONObject skinJSONObject = (JSONObject) skinTemp;
@@ -332,7 +334,6 @@ public class APIWrapper {
 		} catch (IOException e) {
 			log.error(e.getLocalizedMessage(), e);
 		}
-		log.debug("----------");
 		return roleRuneSelectionMap;
 	}
 

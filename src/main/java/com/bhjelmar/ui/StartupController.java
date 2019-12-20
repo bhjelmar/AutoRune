@@ -8,6 +8,7 @@ import com.bhjelmar.util.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -31,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ public class StartupController {
 	@FXML
 	private AnchorPane ap;
 	@Setter
-	private Stage stage;
+	private Stage primaryStage;
 	@Getter
 	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
 	@Getter
@@ -68,6 +70,10 @@ public class StartupController {
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
+		apiWrapper = new APIWrapper();
+	}
+
+	public void onWindowLoad() {
 		if (new File("lolHome.ser").isFile()) {
 			String lolHome = Files.deserializeData("lolHome.ser");
 			if (lolHome != null) {
@@ -83,22 +89,28 @@ public class StartupController {
 	}
 
 	private void beginProcessingLoop() {
+
 		if (lolHomeIsGood(lolHomeDirectory.getText())) {
 			foundLoL.setText("Found League of Legends!");
 			foundLoL.setFill(Paint.valueOf("Green"));
 
 			Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
-			Platform.runLater(() -> {
-				initializeData();
-				waitForLeagueLogin();
-				String summonerId = getSummonerId(lolHomeDirectory.getText());
-				waitForChampionLockIn(summonerId);
-				runesMap = apiWrapper.getOPGGRunes(champion);
+			Task<Void> task = new Task<Void>() {
+				public Void call() {
+					initializeData();
+					waitForLeagueLogin();
+					String summonerId = getSummonerId(lolHomeDirectory.getText());
+					waitForChampionLockIn(summonerId);
+					runesMap = apiWrapper.getOPGGRunes(champion);
 
-				loadRuneSelectionScene();
-			});
+					loadRuneSelectionScene();
 
+					return null;
+				}
+			};
+
+			new Thread(task).start();
 		} else {
 			foundLoL.setText("Unable to find League of Legends.");
 			foundLoL.setFill(Paint.valueOf("Red"));
@@ -106,14 +118,16 @@ public class StartupController {
 	}
 
 	private String getSummonerId(String lolHome) {
+		log("Scraping log files for summonerId", Severity.INFO);
 		String line = Files.grepStreamingFile(lolHome, true, "Received current-summoner ID change (0 -> ");
 		String summonerId = StringUtils.substringAfter(line, "-> ");
 		summonerId = StringUtils.removeEnd(summonerId, ")");
-		printToApplicationConsole("Discovered summoner id: " + summonerId);
+		log("Discovered summoner id: " + summonerId, Severity.INFO);
 		return summonerId;
 	}
 
 	private void waitForChampionLockIn(String summonerId) {
+		log("Awaiting champion lock in.", Severity.INFO);
 		champion = null;
 		while (champion == null) {
 			String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "/lol-champ-select/v1/session");
@@ -125,8 +139,11 @@ public class StartupController {
 			ChampSelect.MyTeamBean myChampion = champSelect.getMyTeam().stream()
 				.filter(e -> Integer.toString(e.getSummonerId()).equals(summonerId) && e.getChampionId() != 0)
 				.findFirst().orElse(new ChampSelect.MyTeamBean());
+			boolean championLockedIn = champSelect.getActions().stream()
+				.flatMap(List::stream)
+				.anyMatch(e -> e.getActorCellId() == myChampion.getCellId() && e.isCompleted());
 
-			if (myChampion.getChampionId() != 0) {
+			if (championLockedIn) {
 				champion = new Champion();
 				champion.setChampionId(myChampion.getChampionId());
 				champion.setSkinNum(versionedSkinIdMap.getRight().get(myChampion.getSelectedSkinId()));
@@ -140,59 +157,64 @@ public class StartupController {
 			}
 		}
 
-		printToApplicationConsole("Locked in  " + champion.getName() + ".");
+		log("Locked in  " + champion.getName() + ".", Severity.INFO);
 	}
 
 	@SneakyThrows
 	private void waitForLeagueLogin() {
-		printToApplicationConsole("Waiting for LoL Process to Start.");
+		log("Waiting for LoL Process to Start.", Severity.INFO);
 		apiWrapper.setLoLClientInfo();
 		while (apiWrapper.getPid() == null || apiWrapper.getPid().equals("null")) {
 			Thread.sleep(5000);
-			apiWrapper.setLoLClientInfo();
+			Pair<String, Severity> message = apiWrapper.setLoLClientInfo();
+			log(message.getLeft(), message.getRight());
 		}
-		printToApplicationConsole("LoL Process found.");
+		log("LoL Process found.", Severity.INFO);
 	}
 
 	private void initializeData() {
-		apiWrapper = new APIWrapper();
-		printToApplicationConsole("Getting Current LoL version.");
+		log("Getting Current LoL version.", Severity.INFO);
 		String currentLoLVersion = apiWrapper.getCurrentLOLVersion();
-		printToApplicationConsole("Current lol version is " + currentLoLVersion);
+		log("Current lol version is " + currentLoLVersion, Severity.INFO);
 
 		Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldRefresh = apiWrapper.shouldUpdateStaticData(currentLoLVersion);
 		if (shouldRefresh.getLeft()) {
-			printToApplicationConsole("Local data store not found, retrieving current champion data.");
+			log("Local data store not found, retrieving current champion data.", Severity.INFO);
 			Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> championAndSkinIds = apiWrapper.getChampionSkinsAndIDs(currentLoLVersion);
 			versionedIdChampionMap = championAndSkinIds.getLeft();
 			versionedSkinIdMap = championAndSkinIds.getRight();
 
-			printToApplicationConsole("Serializing latest data to disk,");
+			log("Serializing latest data to disk,", Severity.INFO);
 			com.bhjelmar.util.Files.serializeData(versionedIdChampionMap, "versionedIdChampionMap.ser");
 			com.bhjelmar.util.Files.serializeData(versionedSkinIdMap, "versionedSkinIdMap.ser");
 		} else {
-			printToApplicationConsole("Local data store found.");
+			log("Local data store found.", Severity.INFO);
 			versionedIdChampionMap = shouldRefresh.getRight().getLeft();
 			versionedSkinIdMap = shouldRefresh.getRight().getRight();
 		}
-		printToApplicationConsole("Startup completed successfully!");
+		log("Startup completed successfully!", Severity.INFO);
 	}
 
-	@SneakyThrows
 	private void loadRuneSelectionScene() {
-		printToApplicationConsole("Starting up runes selection...");
+		log("Starting up runes selection...", Severity.INFO);
 
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/runesSelection.fxml"));
-		Parent root = loader.load();
-
-		stage.setTitle("AutoRune");
-		stage.getIcons().add(new Image("/icon.png"));
-		Scene scene = new Scene(root, 700, 900);
-		scene.getStylesheets().add("/main.css");
-		stage.setResizable(false);
-		stage.setScene(scene);
-
-		((RuneSelectionController) loader.getController()).setStage(stage);
+		Platform.runLater(() -> {
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/runesSelection.fxml"));
+			Parent root = null;
+			try {
+				root = loader.load();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			primaryStage.setTitle("AutoRune");
+			primaryStage.getIcons().add(new Image("/icon.png"));
+			Scene scene = new Scene(root, 700, 900);
+			scene.getStylesheets().add("/main.css");
+			primaryStage.setResizable(false);
+			primaryStage.setScene(scene);
+			primaryStage.show();
+			((RuneSelectionController) loader.getController()).setPrimaryStage(primaryStage);
+		});
 	}
 
 	@SneakyThrows
@@ -203,14 +225,40 @@ public class StartupController {
 
 	private String selectLoLHome() {
 		DirectoryChooser directoryChooser = new DirectoryChooser();
-		File selectedFile = directoryChooser.showDialog(stage);
+		File selectedFile = directoryChooser.showDialog(primaryStage);
 		return selectedFile.getPath();
 	}
 
-	public void printToApplicationConsole(String text) {
+	public void log(String text, Severity severity) {
 		Text t = new Text(text + "\n");
-		t.setFill(Paint.valueOf("White"));
-		textFlow.getChildren().add(t);
+		switch (severity) {
+			case INFO:
+				log.info(text);
+				t.setFill(Paint.valueOf("White"));
+				break;
+			case WARN:
+				log.warn(text);
+				t.setFill(Paint.valueOf("Yellow"));
+				break;
+			case ERROR:
+				log.error(text);
+				t.setFill(Paint.valueOf("Red"));
+				break;
+			case DEBUG:
+				log.debug(text);
+				t.setFill(Paint.valueOf("Blue"));
+				break;
+		}
+		Platform.runLater(() -> {
+			textFlow.getChildren().add(t);
+		});
+	}
+
+	public enum Severity {
+		INFO,
+		WARN,
+		ERROR,
+		DEBUG;
 	}
 
 }

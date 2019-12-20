@@ -50,14 +50,13 @@ public class RuneSelectionController {
 	public Hyperlink donate;
 	public Hyperlink contribute;
 	public BorderPane window;
-	public Label lolConnected;
 
 	private static Map<String, List<RuneSelection>> runesMap;
 	@Setter
 	private static Pair<String, String> selectedRoleAndRune;
 
 	@Setter
-	private Stage stage;
+	private Stage primaryStage;
 
 	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
 
@@ -127,7 +126,7 @@ public class RuneSelectionController {
 	private void createRunesList(String role) {
 		runesPane.getChildren().clear();
 
-		championNameLabel.setText(StartupController.getChampion().getName() + " Locked In");
+		championNameLabel.setText(StartupController.getChampion().getName());
 		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + StartupController.getChampion().getName() + ".png"));
 
 		championImage.setFitHeight(30);
@@ -192,19 +191,17 @@ public class RuneSelectionController {
 
 	@SneakyThrows
 	private void loadStartupScene() {
-		Thread.sleep(2000);
-
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
-		Parent root = (Parent) loader.load();
-
-		stage.setTitle("AutoRune");
-		stage.getIcons().add(new Image("/icon.png"));
-		Scene scene = new Scene(root, 700, 900);
+		Parent root = loader.load();
+		primaryStage.setTitle("AutoRune");
+		primaryStage.getIcons().add(new Image("/icon.png"));
+		Scene scene = new Scene(root, 450, 700);
 		scene.getStylesheets().add("/main.css");
-		stage.setResizable(false);
-		stage.setScene(scene);
-
-
+		primaryStage.setResizable(false);
+		primaryStage.setScene(scene);
+		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
+		primaryStage.show();
+		((StartupController) loader.getController()).onWindowLoad();
 	}
 
 	private void createNewPage() {

@@ -53,13 +53,27 @@ public class Files {
 			}
 
 			while (true) {
+				dir = Paths.get(lolHome + "/Logs/LeagueClient Logs");
+				Optional<Path> mostRecentFile = java.nio.file.Files.list(dir)
+					.filter(f -> !java.nio.file.Files.isDirectory(f) && StringUtils.endsWith(f.toString(), "_LeagueClient.log"))
+					.max(Comparator.comparingLong(f -> f.toFile().lastModified()));
+				if (mostRecentFile.isPresent()) {
+					File mostRecentLoLLog = mostRecentFile.get().toFile();
+					if (!lolLog.getPath().equals(mostRecentLoLLog.getPath())) {
+						lastKnownPosition = lolLog.length() - 1;
+						if (startAtBeginOfFile) {
+							lastKnownPosition = 0;
+						}
+						lolLog = mostRecentLoLLog;
+					}
+				}
 				int runEveryNSeconds = 1;
 				Thread.sleep(runEveryNSeconds);
 				long fileLength = lolLog.length();
 				if (fileLength > lastKnownPosition) {
 					RandomAccessFile readWriteFileAccess = new RandomAccessFile(lolLog, "rw");
 					readWriteFileAccess.seek(lastKnownPosition);
-					String line = null;
+					String line;
 					while ((line = readWriteFileAccess.readLine()) != null) {
 						if (line.contains(key)) {
 							return line;
@@ -71,12 +85,6 @@ public class Files {
 			}
 		}
 		return null;
-	}
-
-	@SneakyThrows
-	public static int pollLogForSummonerId() {
-		Thread.sleep(10000);
-		return 0;
 	}
 
 }

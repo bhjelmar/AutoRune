@@ -26,9 +26,9 @@ public class Main extends Application {
 		scene.getStylesheets().add("/main.css");
 		primaryStage.setResizable(false);
 		primaryStage.setScene(scene);
+		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
 		primaryStage.show();
-
-		((StartupController) loader.getController()).setStage(primaryStage);
+		((StartupController) loader.getController()).onWindowLoad();
 	}
 
 }
