@@ -6,6 +6,8 @@ Simply leave AutoRune running in the background. When you lock in a champion, th
 
 You must have one rune page created named "AutoRune" (case insensitive) for this to work.
 
+![Championify](src/main/resources/screenshots/launcher.png)
+
 ![Championify](src/main/resources/screenshots/screenshot.png)
 
 ## Supported Platforms
