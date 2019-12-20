@@ -14,11 +14,12 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
@@ -31,8 +32,11 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +57,13 @@ public class StartupController {
 	public Text foundLoL;
 	public BorderPane window;
 	public TextFlow textFlow;
+	public Hyperlink donate;
+	public Hyperlink contribute;
+	public GridPane footer;
+	public ScrollPane textScroll;
+	public VBox vbox;
+	public BorderPane border;
+	public HBox hbox;
 	@FXML
 	private AnchorPane ap;
 	@Setter
@@ -64,13 +75,32 @@ public class StartupController {
 
 	public void initialize() {
 		window.setStyle("-fx-background-image: url('https://cdn.vox-cdn.com/uploads/chorus_image/image/57522479/Ez_preseason.0.jpg');");
-//		window.setOpacity(.2);
-//		window.setStyle("-fx-background-color: #2b2b2b;");
 		autoRuneIcon.setImage(new Image("icon.png"));
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
+		footer.setStyle("-fx-background-color: #2b2b2b;");
+		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 5; -fx-border-width: 3");
+		textScroll.setFitToWidth(true);
+		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 10;");
+		textScroll.vvalueProperty().bind(textFlow.heightProperty());
+
 		apiWrapper = new APIWrapper();
+
+		donate.setOnAction(event -> {
+			try {
+				Desktop.getDesktop().browse(new URI("https://www.paypal.me/bhjelmar"));
+			} catch (IOException | URISyntaxException e) {
+				log.error(e.getLocalizedMessage(), e);
+			}
+		});
+		contribute.setOnAction(event -> {
+			try {
+				Desktop.getDesktop().browse(new URI("https://github.com/bhjelmar/autorune"));
+			} catch (IOException | URISyntaxException e) {
+				log.error(e.getLocalizedMessage(), e);
+			}
+		});
 	}
 
 	public void onWindowLoad() {
@@ -214,6 +244,11 @@ public class StartupController {
 			primaryStage.setScene(scene);
 			primaryStage.show();
 			((RuneSelectionController) loader.getController()).setPrimaryStage(primaryStage);
+
+			primaryStage.setMaximized(true);
+			primaryStage.setWidth(700);
+			primaryStage.setHeight(900);
+
 		});
 	}
 

@@ -52,14 +52,16 @@ public class Files {
 				lastKnownPosition = 0;
 			}
 
+			log.info("Scraping file {}", lolLog.getPath());
 			while (true) {
-				dir = Paths.get(lolHome + "/Logs/LeagueClient Logs");
+				Thread.sleep(200);
 				Optional<Path> mostRecentFile = java.nio.file.Files.list(dir)
 					.filter(f -> !java.nio.file.Files.isDirectory(f) && StringUtils.endsWith(f.toString(), "_LeagueClient.log"))
 					.max(Comparator.comparingLong(f -> f.toFile().lastModified()));
 				if (mostRecentFile.isPresent()) {
 					File mostRecentLoLLog = mostRecentFile.get().toFile();
 					if (!lolLog.getPath().equals(mostRecentLoLLog.getPath())) {
+						log.info("LoL Log file switched. from {} to {}", lolLog.getPath(), mostRecentLoLLog.getPath());
 						lastKnownPosition = lolLog.length() - 1;
 						if (startAtBeginOfFile) {
 							lastKnownPosition = 0;
@@ -67,8 +69,6 @@ public class Files {
 						lolLog = mostRecentLoLLog;
 					}
 				}
-				int runEveryNSeconds = 1;
-				Thread.sleep(runEveryNSeconds);
 				long fileLength = lolLog.length();
 				if (fileLength > lastKnownPosition) {
 					RandomAccessFile readWriteFileAccess = new RandomAccessFile(lolLog, "rw");
@@ -76,6 +76,7 @@ public class Files {
 					String line;
 					while ((line = readWriteFileAccess.readLine()) != null) {
 						if (line.contains(key)) {
+							log.info(line);
 							return line;
 						}
 					}

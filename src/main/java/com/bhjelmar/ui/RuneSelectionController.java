@@ -195,7 +195,7 @@ public class RuneSelectionController {
 		Parent root = loader.load();
 		primaryStage.setTitle("AutoRune");
 		primaryStage.getIcons().add(new Image("/icon.png"));
-		Scene scene = new Scene(root, 450, 700);
+		Scene scene = new Scene(root, 450, 350);
 		scene.getStylesheets().add("/main.css");
 		primaryStage.setResizable(false);
 		primaryStage.setScene(scene);
