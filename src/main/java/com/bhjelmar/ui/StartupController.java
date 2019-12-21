@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +66,7 @@ public class StartupController {
 	public VBox vbox;
 	public BorderPane border;
 	public HBox hbox;
+	public Pane selectedLoLHomeTextPane;
 	@FXML
 	private AnchorPane ap;
 	@Setter
@@ -79,11 +82,20 @@ public class StartupController {
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
+		log("INFO", Severity.INFO);
+		log("WARN", Severity.WARN);
+		log("ERROR", Severity.ERROR);
+		log("DEBUG", Severity.DEBUG);
+
 		footer.setStyle("-fx-background-color: #2b2b2b;");
-		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 5; -fx-border-width: 3");
+		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3;");
 		textScroll.setFitToWidth(true);
-		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 10;");
+		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 		textScroll.vvalueProperty().bind(textFlow.heightProperty());
+
+		selectedLoLHomeTextPane.setStyle("-fx-border-width: 4; -fx-border-color: #FF0000");
+		hbox.setStyle("-fx-border-width: 4; -fx-border-color: #FF0000");
+		textScroll.setStyle("-fx-border-width: 4; -fx-border-color: #FF0000");
 
 		apiWrapper = new APIWrapper();
 
@@ -265,7 +277,9 @@ public class StartupController {
 	}
 
 	public void log(String text, Severity severity) {
-		Text t = new Text(text + "\n");
+		SimpleDateFormat sdf = new SimpleDateFormat("hh.mm.ss");
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");
 		switch (severity) {
 			case INFO:
 				log.info(text);

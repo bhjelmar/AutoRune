@@ -15,7 +15,7 @@
                         <Text fx:id="selectLoLHomeText" fill="white" text="Select League of Legends Home Directory"
                               textAlignment="CENTER">
                             <font>
-                                <Font size="24.0"/>
+                                <Font size="18.0"/>
                             </font>
                         </Text>
                         <HBox fx:id="hbox">
@@ -30,9 +30,14 @@
                                 </Text>
                             </children>
                         </HBox>
-                        <ScrollPane fx:id="textScroll" prefHeight="183.0" fitToWidth="true">
+                        <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="183.0">
                             <content>
                                 <TextFlow fx:id="textFlow"/>
+                            </content>
+                        </ScrollPane>
+                        <ScrollPane prefHeight="200.0" prefWidth="200.0">
+                            <content>
+                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0"/>
                             </content>
                         </ScrollPane>
                     </children>
