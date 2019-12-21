@@ -1,6 +1,6 @@
 package com.bhjelmar.ui;
 
-import com.bhjelmar.api.OpggAPI;
+import com.bhjelmar.api.RunesAPI;
 import com.bhjelmar.data.Champion;
 import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Log4j2
-public class RuneSelectionController extends Controller {
+public class RuneSelectionController extends BaseController {
 
 	@Setter
 	private Stage primaryStage;
@@ -180,7 +180,7 @@ public class RuneSelectionController extends Controller {
 			.findFirst()
 			.orElse(null);
 
-		runesMap = OpggAPI.getOPGGRunes(champion);
+		runesMap = RunesAPI.getOPGGRunes(champion);
 
 		if (apiPage != null) {
 			String mostFrequentPosition = runesMap.keySet().stream()

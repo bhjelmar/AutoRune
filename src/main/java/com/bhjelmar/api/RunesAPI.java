@@ -18,11 +18,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Log4j2
-public class OpggAPI {
+public class RunesAPI {
 
 	public static Map<String, List<RuneSelection>> getOPGGRunes(Champion champion) {
-		String url = RuneAPI.OPGG_ROLES.getPath().replaceAll("\\{championName}", champion.getName()).replaceAll("\\{role}", "mid");
-		// op.gg will autocomplete the url for us but it takes ages to load... if we do every lookup for the champion's mid page the load times are way faster
+		// op.gg will autocomplete the url for us but it takes ages to load... if we do every lookup for a specific page, the load times are way faster
+		String url = API.OPGG_ROLES.getPath().replaceAll("\\{championName}", champion.getName()).replaceAll("\\{role}", "mid");
 
 		Map<String, List<RuneSelection>> roleRuneSelectionMap = new HashMap<>();
 		try {
@@ -36,7 +36,7 @@ public class OpggAPI {
 					.map(e -> e.attr("data-position"))
 					.collect(Collectors.toList());
 				for (String role : roles) {
-					url = RuneAPI.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role);
+					url = API.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role);
 					log.debug("Getting Champion Rune info from {}", url);
 					doc = Jsoup.connect(url).timeout(0).get();
 
@@ -95,7 +95,7 @@ public class OpggAPI {
 
 	@Getter
 	@AllArgsConstructor
-	private enum RuneAPI {
+	private enum API {
 		OPGG_ROLES("https://www.op.gg/champion/{championName}/statistics/{role}/rune"),
 		OPGG_RUNES("https://www.op.gg/champion/ajax/statistics/runeList/championId={championId}&position={role}&");
 		private final String path;

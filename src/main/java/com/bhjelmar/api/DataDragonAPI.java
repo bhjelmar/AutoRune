@@ -20,17 +20,17 @@ import java.util.List;
 import java.util.Map;
 
 @Log4j2
-public class RiotAPIRepository {
+public class DataDragonAPI {
 
 	public static Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> getChampionSkinsAndIDs(String currentLOLVersion) {
-		log.debug("Getting skin list from {} " + RiotAPI.SKINS.getPath().replaceAll("\\{currentLOLVersion}", currentLOLVersion));
+		log.debug("Getting skin list from {} " + API.SKINS.getPath().replaceAll("\\{currentLOLVersion}", currentLOLVersion));
 		HttpResponse<String> response;
 
 		Map<Integer, Integer> skinIdMap = new HashMap<>();
 		Map<Integer, Champion> idChampionMap = new HashMap<>();
 
 		try {
-			response = Unirest.get(RiotAPI.SKINS.getPath())
+			response = Unirest.get(API.SKINS.getPath())
 				.routeParam("currentLOLVersion", currentLOLVersion)
 				.asString();
 			if (response.getStatus() != 200) {
@@ -69,10 +69,10 @@ public class RiotAPIRepository {
 	}
 
 	public static String getCurrentLOLVersion() {
-		log.debug("Getting Current LoL version from {}", RiotAPI.VERSION.getPath());
+		log.debug("Getting Current LoL version from {}", API.VERSION.getPath());
 		HttpResponse<String> response;
 		try {
-			response = Unirest.get(RiotAPI.VERSION.getPath())
+			response = Unirest.get(API.VERSION.getPath())
 				.asString();
 			if (response.getStatus() != 200) {
 				log.error(response.getStatusText());
@@ -91,7 +91,7 @@ public class RiotAPIRepository {
 
 	@Getter
 	@AllArgsConstructor
-	private enum RiotAPI {
+	private enum API {
 		VERSION("https://ddragon.leagueoflegends.com/api/versions.json"),
 		RUNES_REFORGED("https://ddragon.leagueoflegends.com/cdn/{currentLOLVersion}/data/en_US/runesReforged.json"),
 		SKINS("http://ddragon.leagueoflegends.com/cdn/{currentLOLVersion}/data/en_US/championFull.json");

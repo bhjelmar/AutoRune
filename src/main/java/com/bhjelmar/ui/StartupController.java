@@ -1,8 +1,8 @@
 package com.bhjelmar.ui;
 
+import com.bhjelmar.api.DataDragonAPI;
 import com.bhjelmar.api.LoLClientAPI;
-import com.bhjelmar.api.OpggAPI;
-import com.bhjelmar.api.RiotAPIRepository;
+import com.bhjelmar.api.RunesAPI;
 import com.bhjelmar.api.response.ChampSelect;
 import com.bhjelmar.data.Champion;
 import com.bhjelmar.data.RuneSelection;
@@ -15,6 +15,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -24,6 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 import lombok.Getter;
@@ -36,11 +38,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 
 @Log4j2
-public class StartupController extends Controller {
+public class StartupController extends BaseController {
 
 	@Getter
 	private static LoLClientAPI lolClientAPI;
@@ -53,6 +57,8 @@ public class StartupController extends Controller {
 	public VBox vbox;
 	public BorderPane border;
 	public HBox hbox;
+	public TextFlow textFlow;
+	public ScrollPane textScroll;
 	@Setter
 	private Stage primaryStage;
 
@@ -62,13 +68,14 @@ public class StartupController extends Controller {
 	private Pair<String, Map<Integer, Integer>> versionedSkinIdMap;
 
 	public void initialize() {
+		sharedState();
+		lolClientAPI = new LoLClientAPI();
+
 		// TODO: why does this not  throw exception
 //		window.setStyle("-fx-background-image: url('https://cdn.vox-cdn.com/uploads/chorus_image/image/57522479/Ez_preseason.0.jpg');");
 		autoRuneIcon.setImage(new Image("icon.png"));
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
-
-		sharedState();
 
 //		footer.setStyle("-fx-background-color: #2b2b2b;");
 		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3;");
@@ -76,8 +83,6 @@ public class StartupController extends Controller {
 		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 		textScroll.vvalueProperty().bind(textFlow.heightProperty());
-
-		lolClientAPI = new LoLClientAPI();
 	}
 
 	public void onWindowLoad() {
@@ -96,7 +101,7 @@ public class StartupController extends Controller {
 	}
 
 	private void beginProcessingLoop() {
-		if (lolHomeIsGood(lolHomeDirectory.getText())) {
+		if (validLoLHome(lolHomeDirectory.getText())) {
 			selectLoLHomeText.setText("Found League of Legends!");
 			selectLoLHomeText.setFill(Paint.valueOf("Green"));
 
@@ -108,7 +113,7 @@ public class StartupController extends Controller {
 					waitForLeagueLogin();
 					String summonerId = getSummonerId(lolHomeDirectory.getText());
 					Champion champion = waitForChampionLockIn(summonerId);
-					Map<String, List<RuneSelection>> runesMap = OpggAPI.getOPGGRunes(champion);
+					Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
 					loadRuneSelectionScene(champion, runesMap);
 					return null;
 				}
@@ -119,6 +124,18 @@ public class StartupController extends Controller {
 			selectLoLHomeText.setText("Are you sure LoL is installed here?");
 			selectLoLHomeText.setFill(Paint.valueOf("Red"));
 		}
+	}
+
+	private String selectLoLHome() {
+		DirectoryChooser directoryChooser = new DirectoryChooser();
+		File selectedFile = directoryChooser.showDialog(primaryStage);
+		return selectedFile.getPath();
+	}
+
+	@SneakyThrows
+	private boolean validLoLHome(String lolHomeDirectory) {
+		return java.nio.file.Files.list(Paths.get(lolHomeDirectory))
+			.anyMatch(e -> e.getFileName().toString().equals("LeagueClient.exe"));
 	}
 
 	private String getSummonerId(String lolHome) {
@@ -163,27 +180,17 @@ public class StartupController extends Controller {
 		return champion;
 	}
 
-	@SneakyThrows
-	private void waitForLeagueLogin() {
-		log("Waiting for LoL Process to Start.", Severity.INFO);
-		lolClientAPI.setLoLClientInfo();
-		while (lolClientAPI.getPid() == null || lolClientAPI.getPid().equals("null")) {
-			Thread.sleep(5000);
-			Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
-			log(message.getLeft(), message.getRight());
-		}
-		log("LoL Process found.", Severity.INFO);
-	}
-
 	private void initializeData() {
 		log("Getting Current LoL version.", Severity.INFO);
-		String currentLoLVersion = RiotAPIRepository.getCurrentLOLVersion();
+		String currentLoLVersion = DataDragonAPI.getCurrentLOLVersion();
 		log("Current lol version is " + currentLoLVersion, Severity.INFO);
 
-		Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldRefresh = Files.shouldUpdateStaticData(currentLoLVersion);
+		Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldRefresh
+			= Files.shouldUpdateStaticData(currentLoLVersion);
 		if (shouldRefresh.getLeft()) {
 			log("Local data store not found, retrieving current champion data.", Severity.INFO);
-			Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> championAndSkinIds = RiotAPIRepository.getChampionSkinsAndIDs(currentLoLVersion);
+			Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> championAndSkinIds
+				= DataDragonAPI.getChampionSkinsAndIDs(currentLoLVersion);
 			versionedIdChampionMap = championAndSkinIds.getLeft();
 			versionedSkinIdMap = championAndSkinIds.getRight();
 
@@ -196,6 +203,18 @@ public class StartupController extends Controller {
 			versionedSkinIdMap = shouldRefresh.getRight().getRight();
 		}
 		log("Startup completed successfully!", Severity.INFO);
+	}
+
+	@SneakyThrows
+	private void waitForLeagueLogin() {
+		log("Waiting for LoL Process to Start.", Severity.INFO);
+		lolClientAPI.setLoLClientInfo();
+		while (lolClientAPI.getPid() == null || lolClientAPI.getPid().equals("null")) {
+			Thread.sleep(5000);
+			Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
+			log(message.getLeft(), message.getRight());
+		}
+		log("LoL Process found.", Severity.INFO);
 	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
@@ -224,20 +243,41 @@ public class StartupController extends Controller {
 			primaryStage.setMaximized(true);
 			primaryStage.setWidth(700);
 			primaryStage.setHeight(900);
-
 		});
 	}
 
-	@SneakyThrows
-	private boolean lolHomeIsGood(String lolHomeDirectory) {
-		return java.nio.file.Files.list(Paths.get(lolHomeDirectory))
-			.anyMatch(e -> e.getFileName().toString().equals("LeagueClient.exe"));
+	public void log(String text, Severity severity) {
+		SimpleDateFormat sdf = new SimpleDateFormat("hh.mm.ss");
+		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");
+		switch (severity) {
+			case INFO:
+				log.info(text);
+				t.setFill(javafx.scene.paint.Paint.valueOf("White"));
+				break;
+			case WARN:
+				log.warn(text);
+				t.setFill(javafx.scene.paint.Paint.valueOf("Yellow"));
+				break;
+			case ERROR:
+				log.error(text);
+				t.setFill(javafx.scene.paint.Paint.valueOf("Red"));
+				break;
+			case DEBUG:
+				log.debug(text);
+				t.setFill(Paint.valueOf("Blue"));
+				break;
+		}
+		Platform.runLater(() -> {
+			textFlow.getChildren().add(t);
+		});
 	}
 
-	private String selectLoLHome() {
-		DirectoryChooser directoryChooser = new DirectoryChooser();
-		File selectedFile = directoryChooser.showDialog(primaryStage);
-		return selectedFile.getPath();
+	public enum Severity {
+		INFO,
+		WARN,
+		ERROR,
+		DEBUG;
 	}
 
 }

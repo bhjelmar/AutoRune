@@ -72,8 +72,8 @@ public class LoLClientAPI {
 	public List<RunePage> getPages() {
 		HttpResponse<String> response;
 		try {
-			log.debug(LoLClient.GET_RUNE_PAGE.getPath().replaceAll("\\{port}", port));
-			response = Unirest.get(LoLClient.GET_RUNE_PAGE.getPath())
+			log.debug(API.GET_RUNE_PAGE.getPath().replaceAll("\\{port}", port));
+			response = Unirest.get(API.GET_RUNE_PAGE.getPath())
 				.routeParam("port", port)
 				.basicAuth("riot", remotingAuthToken)
 				.asString();
@@ -92,7 +92,7 @@ public class LoLClientAPI {
 	public boolean replacePage(long pageIdToReplace, RunePage runePage) {
 		HttpResponse<String> response;
 		try {
-			response = Unirest.delete(LoLClient.DELETE_RUNE_PAGE.getPath())
+			response = Unirest.delete(API.DELETE_RUNE_PAGE.getPath())
 				.routeParam("pageId", String.valueOf(pageIdToReplace))
 				.routeParam("port", port)
 				.basicAuth("riot", remotingAuthToken)
@@ -101,7 +101,7 @@ public class LoLClientAPI {
 				log.error(response.getStatusText());
 			} else {
 				log.debug("deleted old page");
-				response = Unirest.post(LoLClient.POST_RUNE_PAGE.getPath())
+				response = Unirest.post(API.POST_RUNE_PAGE.getPath())
 					.header("Content-Type", "application/json")
 					.basicAuth("riot", remotingAuthToken)
 					.routeParam("port", port)
@@ -122,7 +122,7 @@ public class LoLClientAPI {
 
 	@Getter
 	@AllArgsConstructor
-	private enum LoLClient {
+	private enum API {
 		GET_RUNE_PAGE("https://127.0.0.1:{port}/lol-perks/v1/pages"),
 		POST_RUNE_PAGE("https://127.0.0.1:{port}/lol-perks/v1/pages"),
 		DELETE_RUNE_PAGE("https://127.0.0.1:{port}/lol-perks/v1/pages/{pageId}");
