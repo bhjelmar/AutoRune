@@ -39,6 +39,14 @@
                     <bundler>EXE</bundler>
                 </configuration>
             </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.openjfx</groupId>-->
+            <!--                <artifactId>javafx-maven-plugin</artifactId>-->
+            <!--                <version>0.0.3</version>-->
+            <!--                <configuration>-->
+            <!--                    <mainClass>com.bhjelmar.Main</mainClass>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 
@@ -136,6 +144,14 @@
             <artifactId>httpmime</artifactId>
             <version>4.3.6</version>
         </dependency>
+
+        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.openjfx/javafx &ndash;&gt;-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.openjfx</groupId>-->
+        <!--            <artifactId>javafx</artifactId>-->
+        <!--            <version>13</version>-->
+        <!--            <type>pom</type>-->
+        <!--        </dependency>-->
 
     </dependencies>
 </project>

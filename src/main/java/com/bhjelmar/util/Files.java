@@ -1,13 +1,16 @@
 package com.bhjelmar.util;
 
+import com.bhjelmar.data.Champion;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
 
 @Log4j2
@@ -86,6 +89,20 @@ public class Files {
 			}
 		}
 		return null;
+	}
+
+	public static Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldUpdateStaticData(String currentLOLVersion) {
+		boolean updateData = true;
+		Pair<String, Map<Integer, Champion>> versionedIdChampionMap = null;
+		Pair<String, Map<Integer, Integer>> versionedSkinIdMap = null;
+		if (new File("versionedIdChampionMap.ser").isFile() && new File("versionedSkinIdMap.ser").isFile()) {
+			versionedIdChampionMap = Files.deserializeData("versionedIdChampionMap.ser");
+			versionedSkinIdMap = Files.deserializeData("versionedSkinIdMap.ser");
+			if (versionedIdChampionMap.getLeft().equals(currentLOLVersion) && versionedSkinIdMap.getLeft().equals(currentLOLVersion)) {
+				updateData = false;
+			}
+		}
+		return Pair.of(updateData, Pair.of(versionedIdChampionMap, versionedSkinIdMap));
 	}
 
 }

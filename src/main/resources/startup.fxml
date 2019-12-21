@@ -4,7 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="window" maxHeight="-Infinity" minHeight="-Infinity"
             xmlns="http://javafx.com/javafx/10.0.2-internal" fx:controller="com.bhjelmar.ui.StartupController">
     <center>
@@ -19,26 +21,12 @@
                             </font>
                         </Text>
                         <HBox fx:id="hbox">
-                            <children>
-                                <TextField fx:id="lolHomeDirectory"/>
-                                <Button fx:id="browseDirectory" alignment="TOP_LEFT" mnemonicParsing="false"
-                                        text="Browse"/>
-                                <Text fx:id="foundLoL" fill="white" textAlignment="CENTER">
-                                    <font>
-                                        <Font size="18.0"/>
-                                    </font>
-                                </Text>
-                            </children>
+                            <TextField fx:id="lolHomeDirectory" prefWidth="400"/>
+                            <Button fx:id="browseDirectory" minWidth="70" alignment="TOP_LEFT" mnemonicParsing="false"
+                                    text="Browse"/>
                         </HBox>
                         <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="183.0">
-                            <content>
-                                <TextFlow fx:id="textFlow"/>
-                            </content>
-                        </ScrollPane>
-                        <ScrollPane prefHeight="200.0" prefWidth="200.0">
-                            <content>
-                                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0"/>
-                            </content>
+                            <TextFlow fx:id="textFlow"/>
                         </ScrollPane>
                     </children>
                     <BorderPane.margin>
@@ -50,7 +38,7 @@
         </BorderPane>
     </center>
     <top>
-        <GridPane BorderPane.alignment="CENTER">
+        <GridPane fx:id="header" BorderPane.alignment="CENTER">
             <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
                 <ColumnConstraints halignment="CENTER" hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -61,6 +49,9 @@
             </rowConstraints>
             <ImageView fx:id="autoRuneIcon" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true"
                        GridPane.columnIndex="1"/>
+            <padding>
+                <Insets bottom="8.0" top="8.0"/>
+            </padding>
         </GridPane>
     </top>
     <bottom>

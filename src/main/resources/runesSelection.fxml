@@ -10,7 +10,8 @@
     <!---->
     <!--</top>-->
     <top>
-        <TabPane fx:id="roleSelection" prefHeight="30.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER" />
+        <TabPane fx:id="roleSelection" prefHeight="30.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+        </TabPane>
     </top>
    <center>
       <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">

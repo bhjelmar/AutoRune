@@ -1,5 +1,7 @@
 package com.bhjelmar.ui;
 
+import com.bhjelmar.api.OpggAPI;
+import com.bhjelmar.data.Champion;
 import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
 import com.mashape.unirest.http.Unirest;
@@ -22,25 +24,22 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import lombok.Data;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.awt.*;
 import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Data
 @Log4j2
-public class RuneSelectionController {
+public class RuneSelectionController extends Controller {
+
+	@Setter
+	private Stage primaryStage;
 
 	public Label championNameLabel;
 	public VBox runesPane;
@@ -51,12 +50,10 @@ public class RuneSelectionController {
 	public Hyperlink contribute;
 	public BorderPane window;
 
-	private static Map<String, List<RuneSelection>> runesMap;
 	@Setter
-	private static Pair<String, String> selectedRoleAndRune;
-
+	private Champion champion;
 	@Setter
-	private Stage primaryStage;
+	private Map<String, List<RuneSelection>> runesMap;
 
 	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
 
@@ -71,11 +68,13 @@ public class RuneSelectionController {
 	private TabPane roleSelection;
 
 	public void initialize() {
+		sharedState();
+
 		String championSplashUrl = "https://ddragon.leagueoflegends.com/cdn/img/champion/splash/" +
-			StartupController.getChampion().getName() + "_" +
-			StartupController.getChampion().getSkinNum() + ".jpg";
+			champion.getName() + "_" +
+			champion.getSkinNum() + ".jpg";
 		try {
-			if(Unirest.get(championSplashUrl).asString().getStatus() == 200) {
+			if (Unirest.get(championSplashUrl).asString().getStatus() == 200) {
 				window.setStyle("-fx-background-image: url('" + championSplashUrl + "');");
 			} else {
 				log.debug("Unable to find {}", championSplashUrl);
@@ -89,7 +88,6 @@ public class RuneSelectionController {
 		header.setStyle("-fx-background-color: #2b2b2b;");
 		runesPane.setSpacing(10);
 
-		runesMap = StartupController.getRunesMap();
 		for (String role : runesMap.keySet()) {
 			roleSelection.getTabs().add(new Tab(role));
 		}
@@ -106,28 +104,13 @@ public class RuneSelectionController {
 				createRunesList(t1.getText());
 			}
 		);
-
-		donate.setOnAction(event -> {
-			try {
-				Desktop.getDesktop().browse(new URI("https://www.paypal.me/bhjelmar"));
-			} catch(IOException | URISyntaxException e) {
-				log.error(e.getLocalizedMessage(), e);
-			}
-		});
-		contribute.setOnAction(event -> {
-			try {
-				Desktop.getDesktop().browse(new URI("https://github.com/bhjelmar/autorune"));
-			} catch(IOException | URISyntaxException e) {
-				log.error(e.getLocalizedMessage(), e);
-			}
-		});
 	}
 
 	private void createRunesList(String role) {
 		runesPane.getChildren().clear();
 
-		championNameLabel.setText(StartupController.getChampion().getName());
-		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + StartupController.getChampion().getName() + ".png"));
+		championNameLabel.setText(champion.getName());
+		championImage.setImage(new Image("https://opgg-static.akamaized.net/images/lol/champion/" + champion.getName() + ".png"));
 
 		championImage.setFitHeight(30);
 		championImage.setFitWidth(30);
@@ -149,9 +132,9 @@ public class RuneSelectionController {
 				String paneId = ((WebView) event.getSource()).getId();
 				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
 				String selectedPage = paneId.substring(paneId.indexOf(":") + 1);
-				selectedRoleAndRune = Pair.of(selectedRole, selectedPage);
+				Pair<String, String> selectedRoleAndRune = Pair.of(selectedRole, selectedPage);
 
-				createNewPage();
+				createNewPage(selectedRoleAndRune);
 
 				loadStartupScene();
 			});
@@ -189,30 +172,15 @@ public class RuneSelectionController {
 		}
 	}
 
-	@SneakyThrows
-	private void loadStartupScene() {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
-		Parent root = loader.load();
-		primaryStage.setTitle("AutoRune");
-		primaryStage.getIcons().add(new Image("/icon.png"));
-		Scene scene = new Scene(root, 450, 350);
-		scene.getStylesheets().add("/main.css");
-		primaryStage.setResizable(false);
-		primaryStage.setScene(scene);
-		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
-		primaryStage.show();
-		((StartupController) loader.getController()).onWindowLoad();
-	}
-
-	private void createNewPage() {
-		List<RunePage> runePageList = StartupController.getApiWrapper().getPages();
+	private void createNewPage(Pair<String, String> selectedRoleAndRune) {
+		List<RunePage> runePageList = StartupController.getLolClientAPI().getPages();
 		RunePage apiPage = runePageList.stream()
 			.filter(o -> o.getName()
 				.equalsIgnoreCase("AutoRune"))
 			.findFirst()
 			.orElse(null);
 
-		runesMap = StartupController.getApiWrapper().getOPGGRunes(StartupController.getChampion());
+		runesMap = OpggAPI.getOPGGRunes(champion);
 
 		if (apiPage != null) {
 			String mostFrequentPosition = runesMap.keySet().stream()
@@ -236,15 +204,30 @@ public class RuneSelectionController {
 				selectedPerkIds.add(Integer.parseInt(runes.get(10)));
 				apiPage.setSelectedPerkIds(selectedPerkIds);
 
-				StartupController.getApiWrapper().replacePage(apiPage.getId(), apiPage);
+				StartupController.getLolClientAPI().replacePage(apiPage.getId(), apiPage);
 
 			} else {
-				log.error("Not enough data for champion {}", StartupController.getChampion().getName());
+				log.error("Not enough data for champion {}", champion.getName());
 			}
 
 		} else {
 			log.error("Cannot find rune page named AutoRune. Please create page.");
 		}
+	}
+
+	@SneakyThrows
+	private void loadStartupScene() {
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
+		Parent root = loader.load();
+		primaryStage.setTitle("AutoRune");
+		primaryStage.getIcons().add(new Image("/icon.png"));
+		Scene scene = new Scene(root, 450, 350);
+		scene.getStylesheets().add("/main.css");
+		primaryStage.setResizable(false);
+		primaryStage.setScene(scene);
+		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
+		primaryStage.show();
+		((StartupController) loader.getController()).onWindowLoad();
 	}
 
 }
