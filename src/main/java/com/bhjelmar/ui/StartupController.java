@@ -72,8 +72,8 @@ public class StartupController extends BaseController {
 		lolClientAPI = new LoLClientAPI();
 
 		// TODO: why does this not  throw exception
-//		window.setStyle("-fx-background-image: url('https://cdn.vox-cdn.com/uploads/chorus_image/image/57522479/Ez_preseason.0.jpg');");
-		autoRuneIcon.setImage(new Image("icon.png"));
+		window.setStyle("-fx-background-image: url('images/default.jpg');");
+		autoRuneIcon.setImage(new Image("images/icon.png"));
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
@@ -119,7 +119,12 @@ public class StartupController extends BaseController {
 				}
 			};
 
+			task.setOnFailed(evt -> {
+				logToWindowConsole("The task failed with the following exception: " + task.getException().getLocalizedMessage(), Severity.ERROR);
+				task.getException().printStackTrace(System.err);
+			});
 			new Thread(task).start();
+
 		} else {
 			selectLoLHomeText.setText("Are you sure LoL is installed here?");
 			selectLoLHomeText.setFill(Paint.valueOf("Red"));
@@ -139,16 +144,16 @@ public class StartupController extends BaseController {
 	}
 
 	private String getSummonerId(String lolHome) {
-		log("Scraping log files for summonerId", Severity.INFO);
+		logToWindowConsole("Scraping log files for summonerId", Severity.INFO);
 		String line = Files.grepStreamingFile(lolHome, true, "Received current-summoner ID change (0 -> ");
 		String summonerId = StringUtils.substringAfter(line, "-> ");
 		summonerId = StringUtils.removeEnd(summonerId, ")");
-		log("Discovered summoner id: " + summonerId, Severity.INFO);
+		logToWindowConsole("Discovered summoner id: " + summonerId, Severity.INFO);
 		return summonerId;
 	}
 
 	private Champion waitForChampionLockIn(String summonerId) {
-		log("Awaiting champion lock in.", Severity.INFO);
+		logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
 		Champion champion = null;
 		while (champion == null) {
 			String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "/lol-champ-select/v1/session");
@@ -176,52 +181,52 @@ public class StartupController extends BaseController {
 				champion.setName(championName);
 			}
 		}
-		log("Locked in  " + champion.getName() + ".", Severity.INFO);
+		logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
 		return champion;
 	}
 
 	private void initializeData() {
-		log("Getting Current LoL version.", Severity.INFO);
+		logToWindowConsole("Getting Current LoL version.", Severity.INFO);
 		String currentLoLVersion = DataDragonAPI.getCurrentLOLVersion();
-		log("Current lol version is " + currentLoLVersion, Severity.INFO);
+		logToWindowConsole("Current lol version is " + currentLoLVersion, Severity.INFO);
 
 		Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldRefresh
 			= Files.shouldUpdateStaticData(currentLoLVersion);
 		if (shouldRefresh.getLeft()) {
-			log("Local data store not found, retrieving current champion data.", Severity.INFO);
+			logToWindowConsole("Local data store not found, retrieving current champion data.", Severity.INFO);
 			Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> championAndSkinIds
 				= DataDragonAPI.getChampionSkinsAndIDs(currentLoLVersion);
 			versionedIdChampionMap = championAndSkinIds.getLeft();
 			versionedSkinIdMap = championAndSkinIds.getRight();
 
-			log("Serializing latest data to disk,", Severity.INFO);
+			logToWindowConsole("Serializing latest data to disk,", Severity.INFO);
 			com.bhjelmar.util.Files.serializeData(versionedIdChampionMap, "versionedIdChampionMap.ser");
 			com.bhjelmar.util.Files.serializeData(versionedSkinIdMap, "versionedSkinIdMap.ser");
 		} else {
-			log("Local data store found.", Severity.INFO);
+			logToWindowConsole("Local data store found.", Severity.INFO);
 			versionedIdChampionMap = shouldRefresh.getRight().getLeft();
 			versionedSkinIdMap = shouldRefresh.getRight().getRight();
 		}
-		log("Startup completed successfully!", Severity.INFO);
+		logToWindowConsole("Startup completed successfully!", Severity.INFO);
 	}
 
 	@SneakyThrows
 	private void waitForLeagueLogin() {
-		log("Waiting for LoL Process to Start.", Severity.INFO);
+		logToWindowConsole("Waiting for LoL Process to Start.", Severity.INFO);
 		lolClientAPI.setLoLClientInfo();
 		while (lolClientAPI.getPid() == null || lolClientAPI.getPid().equals("null")) {
 			Thread.sleep(5000);
 			Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
-			log(message.getLeft(), message.getRight());
+			logToWindowConsole(message.getLeft(), message.getRight());
 		}
-		log("LoL Process found.", Severity.INFO);
+		logToWindowConsole("LoL Process found.", Severity.INFO);
 	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
-		log("Starting up runes selection...", Severity.INFO);
+		logToWindowConsole("Starting up runes selection...", Severity.INFO);
 
 		Platform.runLater(() -> {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/runesSelection.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/runesSelection.fxml"));
 			Parent root = null;
 			try {
 				root = loader.load();
@@ -229,9 +234,9 @@ public class StartupController extends BaseController {
 				e.printStackTrace();
 			}
 			primaryStage.setTitle("AutoRune");
-			primaryStage.getIcons().add(new Image("/icon.png"));
+			primaryStage.getIcons().add(new Image("/images/icon.png"));
 			Scene scene = new Scene(root, 700, 900);
-			scene.getStylesheets().add("/main.css");
+			scene.getStylesheets().add("/css/main.css");
 			primaryStage.setResizable(false);
 			primaryStage.setScene(scene);
 			primaryStage.show();
@@ -246,7 +251,7 @@ public class StartupController extends BaseController {
 		});
 	}
 
-	public void log(String text, Severity severity) {
+	public void logToWindowConsole(String text, Severity severity) {
 		SimpleDateFormat sdf = new SimpleDateFormat("hh.mm.ss");
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");

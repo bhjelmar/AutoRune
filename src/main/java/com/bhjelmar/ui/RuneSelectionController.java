@@ -155,17 +155,17 @@ public class RuneSelectionController extends BaseController {
 			html.append("<div class=\"tabItem ChampionKeystoneRune-All\" data-tab-data-url=\"/champion/ajax/statistics/runeList/championId=32&amp;position=JUNGLE\" style=\"display: block;\"><table class=\"champion-stats__table champion-stats__table--rune sortable tablesorter tablesorter-default\" role=\"grid\">");
 			html.append("<tbody aria-live=\"polite\" aria-relevant=\"all\">");
 			html.append(runeSelection.getElement().toString()
-					.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
-					.replaceAll("champion-stats__table__cell--pickrate\"> ", "champion-stats__table__cell--pickrate\">&emsp;")
-					.replaceAll("<em>", " Playrate<br><br><em>&emsp;")
-					.replaceAll("</em>", "</em> Games")
-					.replaceAll("</td> \n" +
-							" <td class=\"champion-stats__table__cell champion-stats__table__cell--winrate\">", "<br><br>&emsp;")
-					.replaceAll("%</td>", "% Winrate"));
+				.replaceAll("//opgg-static.akamaized.net", "http://opgg-static.akamaized.net")
+				.replaceAll("champion-stats__table__cell--pickrate\"> ", "champion-stats__table__cell--pickrate\">&emsp;")
+				.replaceAll("<em>", " Playrate<br><br><em>&emsp;")
+				.replaceAll("</em>", "</em> Games")
+				.replaceAll("</td> \n" +
+					" <td class=\"champion-stats__table__cell champion-stats__table__cell--winrate\">", "<br><br>&emsp;")
+				.replaceAll("%</td>", "% Winrate"));
 			html.append("</tbody></table></div>");
 
 			webEngine.loadContent(html.toString());
-			webEngine.setUserStyleSheetLocation(getClass().getResource("/runetable.css").toString());
+			webEngine.setUserStyleSheetLocation(getClass().getResource("/css/runetable.css").toString());
 
 			runesPane.getChildren().add(webView);
 			i++;
@@ -217,12 +217,12 @@ public class RuneSelectionController extends BaseController {
 
 	@SneakyThrows
 	private void loadStartupScene() {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/startup.fxml"));
 		Parent root = loader.load();
 		primaryStage.setTitle("AutoRune");
-		primaryStage.getIcons().add(new Image("/icon.png"));
+		primaryStage.getIcons().add(new Image("/images/icon.png"));
 		Scene scene = new Scene(root, 450, 350);
-		scene.getStylesheets().add("/main.css");
+		scene.getStylesheets().add("/css/main.css");
 		primaryStage.setResizable(false);
 		primaryStage.setScene(scene);
 		((StartupController) loader.getController()).setPrimaryStage(primaryStage);

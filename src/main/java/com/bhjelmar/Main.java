@@ -29,20 +29,9 @@ public class Main extends Application {
 		launch();
 	}
 
-	public void start(Stage primaryStage) throws Exception {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/startup.fxml"));
-		Parent root = loader.load();
-		primaryStage.setTitle("AutoRune");
-		primaryStage.getIcons().add(new Image("/icon.png"));
-		Scene scene = new Scene(root, 450, 350);
-		scene.getStylesheets().add("/main.css");
-		primaryStage.setResizable(false);
-		primaryStage.setScene(scene);
-		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
-		primaryStage.show();
-		((StartupController) loader.getController()).onWindowLoad();
-	}
-
+	/**
+	 * Configures default object mapper for Unirest and disables cert verification.
+	 */
 	@SneakyThrows
 	public static void configureUnirest() {
 		// Override default UniRest mapper for use with custom POJOs
@@ -87,6 +76,20 @@ public class Main extends Application {
 			.setSSLSocketFactory(sslsf)
 			.build();
 		Unirest.setHttpClient(httpclient);
+	}
+
+	public void start(Stage primaryStage) throws Exception {
+		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/startup.fxml"));
+		Parent root = loader.load();
+		primaryStage.setTitle("AutoRune");
+		primaryStage.getIcons().add(new Image("/images/icon.png"));
+		Scene scene = new Scene(root, 450, 350);
+		scene.getStylesheets().add("/css/main.css");
+		primaryStage.setResizable(false);
+		primaryStage.setScene(scene);
+		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
+		primaryStage.show();
+		((StartupController) loader.getController()).onWindowLoad();
 	}
 
 }

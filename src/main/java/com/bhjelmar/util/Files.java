@@ -16,6 +16,12 @@ import java.util.Optional;
 @Log4j2
 public class Files {
 
+	/**
+	 * Serializes object to file.
+	 *
+	 * @param o    Object to serialize.
+	 * @param name File name to serialize to.
+	 */
 	@SneakyThrows
 	public static void serializeData(Object o, String name) {
 		FileOutputStream fos = new FileOutputStream(name);
@@ -26,7 +32,15 @@ public class Files {
 		log.debug("Serialized data is saved in " + name + ".");
 	}
 
+	/**
+	 * Deserializes from file to Pojo.
+	 *
+	 * @param fileName Path to file.
+	 * @param <T>      Type to deserialize the file to.
+	 * @return The deserialized file.
+	 */
 	@SneakyThrows
+	@SuppressWarnings("unchecked")
 	public static <T> T deserializeData(String fileName) {
 		T obj;
 

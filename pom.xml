@@ -35,7 +35,7 @@
                 <version>8.8.3</version>
                 <configuration>
                     <vendor>bhjelmar</vendor>
-                    <mainClass>com.bhjelmar.Main_old</mainClass>
+                    <mainClass>com.bhjelmar.Main</mainClass>
                     <bundler>EXE</bundler>
                 </configuration>
             </plugin>
