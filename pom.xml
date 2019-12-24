@@ -9,7 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <jdk.version>1.8</jdk.version>
+        <jdk.version>13.0.1</jdk.version>
     </properties>
 
     <build>
@@ -24,9 +24,22 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <inherited>true</inherited>
                 <configuration>
-                    <source>8</source>
-                    <target>8</target>
+                    <source>13</source>
+                    <target>13</target>
+                    <compilerArgs>
+                        <arg>--enable-preview</arg>
+                        <arg>--add-exports=javafx.base/com.sun.javafx=AutoRune</arg>
+                    </compilerArgs>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.10</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
@@ -39,24 +52,40 @@
                     <bundler>EXE</bundler>
                 </configuration>
             </plugin>
-            <!--            <plugin>-->
-            <!--                <groupId>org.openjfx</groupId>-->
-            <!--                <artifactId>javafx-maven-plugin</artifactId>-->
-            <!--                <version>0.0.3</version>-->
-            <!--                <configuration>-->
-            <!--                    <mainClass>com.bhjelmar.Main</mainClass>-->
-            <!--                </configuration>-->
-            <!--            </plugin>-->
+
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.3</version>
+                <configuration>
+                    <mainClass>com.bhjelmar.Main</mainClass>
+                    <options>
+                        <option>--enable-preview</option>
+                        <option>--add-exports=javafx.base/com.sun.javafx=AutoRune</option>
+                    </options>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>projectlombok.org</id>
+            <url>https://projectlombok.org/edge-releases</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.0</version>
-            <scope>provided</scope>
+            <version>1.18.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>1.3.0.Final</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/net.java.dev.jna/jna-platform -->
@@ -144,14 +173,25 @@
             <artifactId>httpmime</artifactId>
             <version>4.3.6</version>
         </dependency>
-
-        <!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.openjfx/javafx &ndash;&gt;-->
-        <!--        <dependency>-->
-        <!--            <groupId>org.openjfx</groupId>-->
-        <!--            <artifactId>javafx</artifactId>-->
-        <!--            <version>13</version>-->
-        <!--            <type>pom</type>-->
-        <!--        </dependency>-->
-
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${jdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${jdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-web</artifactId>
+            <version>${jdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${jdk.version}</version>
+        </dependency>
     </dependencies>
 </project>

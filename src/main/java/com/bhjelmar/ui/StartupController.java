@@ -77,7 +77,6 @@ public class StartupController extends BaseController {
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
-//		footer.setStyle("-fx-background-color: #2b2b2b;");
 		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3;");
 		textScroll.setFitToWidth(true);
 		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
@@ -256,22 +255,22 @@ public class StartupController extends BaseController {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");
 		switch (severity) {
-			case INFO:
+			case INFO -> {
 				log.info(text);
-				t.setFill(javafx.scene.paint.Paint.valueOf("White"));
-				break;
-			case WARN:
+				t.setFill(Paint.valueOf("White"));
+			}
+			case WARN -> {
 				log.warn(text);
-				t.setFill(javafx.scene.paint.Paint.valueOf("Yellow"));
-				break;
-			case ERROR:
+				t.setFill(Paint.valueOf("Yellow"));
+			}
+			case ERROR -> {
 				log.error(text);
-				t.setFill(javafx.scene.paint.Paint.valueOf("Red"));
-				break;
-			case DEBUG:
+				t.setFill(Paint.valueOf("Red"));
+			}
+			case DEBUG -> {
 				log.debug(text);
 				t.setFill(Paint.valueOf("Blue"));
-				break;
+			}
 		}
 		Platform.runLater(() -> {
 			textFlow.getChildren().add(t);

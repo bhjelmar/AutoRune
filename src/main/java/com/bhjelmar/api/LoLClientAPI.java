@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import com.sun.javafx.PlatformUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
@@ -21,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.apache.commons.lang3.tuple.Pair.of;
+
 @Log4j2
 public class LoLClientAPI {
 
@@ -30,41 +33,62 @@ public class LoLClientAPI {
 	private String pid;
 
 	public Pair<String, StartupController.Severity> setLoLClientInfo() {
+		if (PlatformUtil.isWindows()) {
+			return setLoLClientInfoWindows();
+		} else if (PlatformUtil.isMac()) {
+			return setLoLClientInfoMac();
+		} else if (PlatformUtil.isUnix()) {
+			return setLoLClientInfoUnix();
+		} else {
+			return Pair.of("Unable to determine you operating system.", StartupController.Severity.ERROR);
+		}
+	}
+
+	private Pair<String, StartupController.Severity> setLoLClientInfoMac() {
+		return Pair.of("Mac OS not yet supported.", StartupController.Severity.ERROR);
+	}
+
+	private Pair<String, StartupController.Severity> setLoLClientInfoUnix() {
+		return Pair.of("Mac OS not yet supported.", StartupController.Severity.ERROR);
+	}
+
+	private Pair<String, StartupController.Severity> setLoLClientInfoWindows() {
 		Runtime runtime = Runtime.getRuntime();
 		Pair<String, StartupController.Severity> message;
 		try {
 			Process proc = runtime.exec(System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
-			InputStream inputstream = proc.getInputStream();
-			InputStreamReader inputstreamreader = new InputStreamReader(inputstream, StandardCharsets.UTF_8);
-			BufferedReader bufferedreader = new BufferedReader(inputstreamreader);
-			String line;
-			while ((line = bufferedreader.readLine()) != null) {
-				if (line.contains("LeagueClientUx.exe")) {
-					int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
-					int endOfToken = line.indexOf("\"", beginningOfToken);
-					remotingAuthToken = line.substring(beginningOfToken, endOfToken);
+			try (InputStream inputstream = proc.getInputStream();
+				 InputStreamReader inputstreamreader = new InputStreamReader(inputstream, StandardCharsets.UTF_8);
+				 BufferedReader bufferedreader = new BufferedReader(inputstreamreader)
+			) {
+				String line;
+				while ((line = bufferedreader.readLine()) != null) {
+					if (line.contains("LeagueClientUx.exe")) {
+						int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
+						int endOfToken = line.indexOf("\"", beginningOfToken);
+						remotingAuthToken = line.substring(beginningOfToken, endOfToken);
 
-					int beginningOfPort = line.indexOf("--app-port=") + "--app-port=".length();
-					int endOfPort = line.indexOf("\"", beginningOfPort);
-					port = line.substring(beginningOfPort, endOfPort);
+						int beginningOfPort = line.indexOf("--app-port=") + "--app-port=".length();
+						int endOfPort = line.indexOf("\"", beginningOfPort);
+						port = line.substring(beginningOfPort, endOfPort);
 
-					int beginningOfPid = line.indexOf("--app-pid=") + "--app-pid=".length();
-					int endOfPid = line.indexOf("\"", beginningOfPid);
-					pid = line.substring(beginningOfPid, endOfPid);
+						int beginningOfPid = line.indexOf("--app-pid=") + "--app-pid=".length();
+						int endOfPid = line.indexOf("\"", beginningOfPid);
+						pid = line.substring(beginningOfPid, endOfPid);
+					}
+				}
+				if (pid == null) {
+					message = of("Cannot find LeagueClientUx pid. Is league process running?", StartupController.Severity.DEBUG);
+				} else if (remotingAuthToken == null) {
+					message = of("Cannot find LeagueClientUx remoting-auth-token.", StartupController.Severity.ERROR);
+				} else if (port == null) {
+					message = of("Cannot find LeagueClientUx port.", StartupController.Severity.ERROR);
+				} else {
+					message = of("Found LeagueClientUx process", StartupController.Severity.INFO);
 				}
 			}
-			if (pid == null) {
-				message = Pair.of("Cannot find LeagueClientUx pid. Is league process running?", StartupController.Severity.DEBUG);
-			} else if (remotingAuthToken == null) {
-				message = Pair.of("Cannot find LeagueClientUx remoting-auth-token.", StartupController.Severity.ERROR);
-			} else if (port == null) {
-				message = Pair.of("Cannot find LeagueClientUx port.", StartupController.Severity.ERROR);
-			} else {
-				message = Pair.of("Found LeagueClientUx process", StartupController.Severity.INFO);
-			}
-			bufferedreader.close();
 		} catch (IOException e) {
-			message = Pair.of(e.getLocalizedMessage(), StartupController.Severity.ERROR);
+			message = of(e.getLocalizedMessage(), StartupController.Severity.ERROR);
 		}
 		return message;
 	}
