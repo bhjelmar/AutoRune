@@ -6,6 +6,7 @@ import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -136,25 +137,36 @@ public class RuneSelectionController extends BaseController {
 			webView.setId(role + ":" + i);
 			webView.setOpacity(.70);
 			webView.setOnMouseClicked(event -> {
-				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/selection.wav")).getFile()).toURI().toString());
-				MediaPlayer sound = new MediaPlayer(media);
-				sound.play();
 
-				String paneId = ((WebView) event.getSource()).getId();
-				String selectedRole = paneId.substring(0, paneId.indexOf(":"));
-				String selectedPage = paneId.substring(paneId.indexOf(":") + 1);
-				Pair<String, String> selectedRoleAndRune = Pair.of(selectedRole, selectedPage);
+				Task<Void> task = new Task<Void>() {
+					@SneakyThrows
+					public Void call() {
+						Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/selection.wav")).getFile()).toURI().toString());
+						MediaPlayer sound = new MediaPlayer(media);
+						sound.play();
 
-				createNewPage(selectedRoleAndRune);
+						String paneId = ((WebView) event.getSource()).getId();
+						String selectedRole = paneId.substring(0, paneId.indexOf(":"));
+						String selectedPage = paneId.substring(paneId.indexOf(":") + 1);
+						Pair<String, String> selectedRoleAndRune = Pair.of(selectedRole, selectedPage);
 
-				StartupController.start();
+						createNewPage(selectedRoleAndRune);
+
+						StartupController.start();
+
+						return null;
+					}
+				};
+
+				task.setOnFailed(evt -> {
+					log.error("The task failed with the following exception: " + task.getException().getLocalizedMessage(), StartupController.Severity.ERROR);
+					task.getException().printStackTrace(System.err);
+				});
+				new Thread(task).start();
 			});
 			webView.setOnMouseEntered(event -> {
 				webView.setOpacity(.85);
-
-
 				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/mouseHover.wav")).getFile()).toURI().toString());
-				log.info(new File(Objects.requireNonNull(classLoader.getResource("audio/tabSelect.wav")).getFile()).toURI().toString());
 				MediaPlayer sound = new MediaPlayer(media);
 				sound.play();
 			});

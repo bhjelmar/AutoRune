@@ -1,5 +1,6 @@
 package com.bhjelmar.util;
 
+import com.bhjelmar.api.LoLClientAPI;
 import com.bhjelmar.data.Champion;
 import com.sun.javafx.PlatformUtil;
 import lombok.SneakyThrows;
@@ -73,8 +74,12 @@ public class Files {
 				lastKnownPosition = 0;
 			}
 
-			log.info("Scraping file {}", lolLog.getPath());
+			log.debug("Scraping file {}", lolLog.getPath());
 			while (true) {
+				// isLoggedIn is updated asynchronously every 5 seconds from StartupController Timeline
+				if (!LoLClientAPI.isLoggedIn()) {
+					return null;
+				}
 				Thread.sleep(200);
 				Optional<Path> mostRecentFile = java.nio.file.Files.list(dir)
 					.filter(f -> !java.nio.file.Files.isDirectory(f) && StringUtils.endsWith(f.toString(), "_LeagueClient.log"))

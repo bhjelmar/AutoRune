@@ -30,6 +30,7 @@ public class LoLClientAPI {
 	private String remotingAuthToken;
 	private String port;
 	@Getter
+	private static boolean isLoggedIn;
 	private String pid;
 
 	public Pair<String, StartupController.Severity> setLoLClientInfo() {
@@ -59,6 +60,9 @@ public class LoLClientAPI {
 				 BufferedReader bufferedreader = new BufferedReader(inputstreamreader)
 			) {
 				String line;
+				remotingAuthToken = null;
+				port = null;
+				pid = null;
 				while ((line = bufferedreader.readLine()) != null) {
 					if (line.contains(processName)) {
 						int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
@@ -91,12 +95,16 @@ public class LoLClientAPI {
 				}
 				if (pid == null) {
 					message = of("Cannot find LeagueClientUx pid. Is league process running?", StartupController.Severity.DEBUG);
+					isLoggedIn = false;
 				} else if (remotingAuthToken == null) {
 					message = of("Cannot find LeagueClientUx remoting-auth-token.", StartupController.Severity.ERROR);
+					isLoggedIn = false;
 				} else if (port == null) {
 					message = of("Cannot find LeagueClientUx port.", StartupController.Severity.ERROR);
+					isLoggedIn = false;
 				} else {
 					message = of("Found LeagueClientUx process", StartupController.Severity.INFO);
+					isLoggedIn = true;
 				}
 			}
 		} catch (IOException e) {

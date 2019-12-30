@@ -11,10 +11,10 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
@@ -44,71 +44,63 @@ public class RunesAPI {
 		List<String> roles = initialDoc.getElementsByClass("champion-stats-position").first().getElementsByClass("champion-stats-header__position").stream()
 			.map(e -> e.attr("data-position"))
 			.collect(Collectors.toList());
-		List<CompletableFuture> roleFutures = new ArrayList<>();
-		for (String role : roles) {
-			roleFutures.add(CompletableFuture.runAsync(new Runnable() {
+		roles.parallelStream().forEach(role -> {
+			url.set(API.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role));
+			log.info("Getting Champion Rune info from {}", url);
 
-				@Override
-				@SneakyThrows
-				public void run() {
-					url.set(API.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role));
-					log.debug("Getting Champion Rune info from {}", url);
-					Document doc = Jsoup.connect(url.get()).timeout(0).get();
+			Document doc = null;
+			try {
+				doc = Jsoup.connect(url.get()).timeout(0).get();
+			} catch (IOException e) {
+				log.error(e.getLocalizedMessage(), e);
+			}
 
-					log.debug("Finished fetch");
+			log.info("Finished fetch");
 
-					Element runesTable = doc.select("table").get(0);
-					Elements runesRows = runesTable.select("tr");
-					runesRows.remove(0); // header
-					for (Element runesRow : runesRows) {
-						List<String> mainTree = runesRow.getElementsByClass("perk-page__item--mark").stream()
-							.map(e -> {
-								String imgUrl = e.select("img").first().absUrl("src");
-								return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
-							})
-							.collect(Collectors.toList());
-						List<String> runes = runesRow.getElementsByClass("perk-page__item--active").stream()
-							.map(e -> {
-								String imgUrl = e.getElementsByClass("perk-page__item--active").select("img").first().absUrl("src");
-								return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
-							})
-							.collect(Collectors.toList());
-						List<String> perks = runesRow.getElementsByClass("active").stream()
-							.map(e -> {
-								String imgUrl = e.select("img").first().absUrl("src");
-								return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
-							})
-							.collect(Collectors.toList());
+			Element runesTable = doc.select("table").get(0);
+			Elements runesRows = runesTable.select("tr");
+			runesRows.remove(0); // header
+			for (Element runesRow : runesRows) {
+				List<String> mainTree = runesRow.getElementsByClass("perk-page__item--mark").stream()
+					.map(e -> {
+						String imgUrl = e.select("img").first().absUrl("src");
+						return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
+					})
+					.collect(Collectors.toList());
+				List<String> runes = runesRow.getElementsByClass("perk-page__item--active").stream()
+					.map(e -> {
+						String imgUrl = e.getElementsByClass("perk-page__item--active").select("img").first().absUrl("src");
+						return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
+					})
+					.collect(Collectors.toList());
+				List<String> perks = runesRow.getElementsByClass("active").stream()
+					.map(e -> {
+						String imgUrl = e.select("img").first().absUrl("src");
+						return imgUrl.substring(imgUrl.lastIndexOf("/") + 1, imgUrl.lastIndexOf("."));
+					})
+					.collect(Collectors.toList());
 
-						runes.add(0, mainTree.get(0));
-						runes.add(5, mainTree.get(1));
-						runes.addAll(perks);
+				runes.add(0, mainTree.get(0));
+				runes.add(5, mainTree.get(1));
+				runes.addAll(perks);
 
-						String pickRateRaw = runesRow.getElementsByClass("champion-stats__table__cell--pickrate").first().text().replaceAll("%", "");
-						double pickRate = Double.parseDouble(pickRateRaw.substring(0, pickRateRaw.indexOf(" "))); // has # games we need to parse out
-						double winRate = Double.parseDouble(runesRow.getElementsByClass("champion-stats__table__cell--winrate").get(0).text().replaceAll("%", ""));
+				String pickRateRaw = runesRow.getElementsByClass("champion-stats__table__cell--pickrate").first().text().replaceAll("%", "");
+				double pickRate = Double.parseDouble(pickRateRaw.substring(0, pickRateRaw.indexOf(" "))); // has # games we need to parse out
+				double winRate = Double.parseDouble(runesRow.getElementsByClass("champion-stats__table__cell--winrate").get(0).text().replaceAll("%", ""));
 
-						RuneSelection runeSelection = new RuneSelection(runesRow, runes, pickRate, winRate);
-						if (roleRuneSelectionMap.get(role) != null) {
-							List<RuneSelection> prev = roleRuneSelectionMap.get(role);
-							prev.add(runeSelection);
-							roleRuneSelectionMap.put(role, prev);
-						} else {
-							List<RuneSelection> runeList = new ArrayList<>();
-							runeList.add(runeSelection);
-							roleRuneSelectionMap.put(role, runeList);
-						}
-						log.debug(champion.getName() + ":" + role + ":" + winRate + ":" + pickRate + ":" + runes + ":" + perks);
-					}
+				RuneSelection runeSelection = new RuneSelection(runesRow, runes, pickRate, winRate);
+				if (roleRuneSelectionMap.get(role) != null) {
+					List<RuneSelection> prev = roleRuneSelectionMap.get(role);
+					prev.add(runeSelection);
+					roleRuneSelectionMap.put(role, prev);
+				} else {
+					List<RuneSelection> runeList = new ArrayList<>();
+					runeList.add(runeSelection);
+					roleRuneSelectionMap.put(role, runeList);
 				}
-			}));
-
-		}
-
-		CompletableFuture[] cfs = roleFutures.toArray(new CompletableFuture[0]);
-		CompletableFuture<Void> cf = CompletableFuture.allOf(cfs);
-		cf.get();
-
+				log.info(champion.getName() + ":" + role + ":" + winRate + ":" + pickRate + ":" + runes + ":" + perks);
+			}
+		});
 		return roleRuneSelectionMap;
 	}
 

@@ -10,6 +10,8 @@ import com.bhjelmar.util.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.javafx.PlatformUtil;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
@@ -28,6 +30,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
+import javafx.util.Duration;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -120,6 +123,12 @@ public class StartupController extends BaseController {
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
+		// Runs in the background and updates isLoggedIn every 5 seconds.
+		// Other methods in the task below observe the isLoggedIn.
+		Timeline leagueLoginVerification = new Timeline(new KeyFrame(Duration.seconds(5), event -> verifyLeagueLogin()));
+		leagueLoginVerification.setCycleCount(Timeline.INDEFINITE);
+		leagueLoginVerification.play();
+
 		Task<Void> task = new Task<Void>() {
 			@SneakyThrows
 			public Void call() {
@@ -128,40 +137,52 @@ public class StartupController extends BaseController {
 					Thread.sleep(2500);
 					return null;
 				}
+
 				logToWindowConsole("Startup completed successfully!", Severity.INFO);
 				logToWindowConsole("AutoRune will move to the background and await champion lock in.", Severity.INFO);
-
 				Thread.sleep(5000);
 				Platform.runLater(() -> {
 					BaseController.getPrimaryStage().toBack();
 				});
 
-				blockForLeagueLogin();
-				String summonerId = blockForSummonerId(lolHomeDirectory.getText());
-				logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
+				boolean continueLooping = true;
+				while (continueLooping) {
+					String summonerId = getSummonerId(lolHomeDirectory.getText());
+					if (summonerId == null) {
+						logToWindowConsole("No longer logged into league client.", Severity.INFO);
+					} else {
+						logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
+						Champion champion;
+						if (!BaseController.isDebug()) {
+							champion = getLockedInCHampion(summonerId);
+						} else {
+							// get random champion
+							champion = versionedIdChampionMap.getRight().values().stream()
+								.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
+								.findAny().get();
+						}
+						if (champion != null) {
+							continueLooping = false;
+							logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
+							logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
 
-				Champion champion;
-				if (!BaseController.isDebug()) {
-					champion = blockForChampionLockIn(summonerId);
-				} else {
-					// get random champion
-					champion = versionedIdChampionMap.getRight().values().stream()
-						.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
-						.findAny().get();
+							Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
+							loadRuneSelectionScene(champion, runesMap);
+						}
+					}
+					Thread.sleep(5000);
 				}
-				logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
 
-				logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
-				Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
-
-				loadRuneSelectionScene(champion, runesMap);
 				return null;
 			}
-		};
 
+		};
 		task.setOnFailed(evt -> {
 			logToWindowConsole("The task failed with the following exception: " + task.getException().getLocalizedMessage(), Severity.ERROR);
 			task.getException().printStackTrace(System.err);
+		});
+		task.setOnSucceeded(evt -> {
+			leagueLoginVerification.stop();
 		});
 		new Thread(task).start();
 	}
@@ -184,19 +205,26 @@ public class StartupController extends BaseController {
 			.anyMatch(e -> e.getFileName().toString().equals(lolApplicationName));
 	}
 
-	private String blockForSummonerId(String lolHome) {
+	private String getSummonerId(String lolHome) {
 		logToWindowConsole("Scraping log files for summonerId", Severity.INFO);
 		String line = Files.grepStreamingFile(lolHome, true, "Received current-summoner ID change (0 -> ");
+		// will be null when isLoggedIn is false (league client closed while we were processing)
+		if (line == null) {
+			return null;
+		}
 		String summonerId = StringUtils.substringAfter(line, "-> ");
 		summonerId = StringUtils.removeEnd(summonerId, ")");
 		logToWindowConsole("Discovered summoner id: " + summonerId, Severity.INFO);
 		return summonerId;
 	}
 
-	private Champion blockForChampionLockIn(String summonerId) {
+	private Champion getLockedInCHampion(String summonerId) {
 		Champion champion = null;
 		while (champion == null) {
 			String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "/lol-champ-select/v1/session");
+			if (line == null) {
+				return null;
+			}
 			String payload = StringUtils.substringAfter(line, ":");
 
 			Gson gson = new GsonBuilder().create();
@@ -250,15 +278,10 @@ public class StartupController extends BaseController {
 	}
 
 	@SneakyThrows
-	private void blockForLeagueLogin() {
-		logToWindowConsole("Waiting for LoL Process to Start.", Severity.INFO);
+	private void verifyLeagueLogin() {
+		logToWindowConsole("Ensuring LoL process is running...", Severity.DEBUG);
 		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
 		logToWindowConsole(message.getLeft(), message.getRight());
-		while (lolClientAPI.getPid() == null || lolClientAPI.getPid().equals("null")) {
-			Thread.sleep(5000);
-			message = lolClientAPI.setLoLClientInfo();
-			logToWindowConsole(message.getLeft(), message.getRight());
-		}
 	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
