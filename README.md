@@ -1,7 +1,5 @@
 # AutoRune
 
-![AutoRune](src/main/resources/images/icons/96x96.png)
-
 <p align="center">
   <img src="https://github.com/bhjelmar/AutoRune/blob/master/src/main/resources/images/icons/96x96.png"/>
 </p>
@@ -12,9 +10,13 @@ Simply leave AutoRune running in the background. When you lock in a champion, th
 
 You must have one rune page created named "AutoRune" (case insensitive) for this to work.
 
-![AutoRune](src/main/resources/screenshots/launcher.png)
+<p align="center">
+  <img src="https://github.com/bhjelmar/AutoRune/blob/master/src/main/resources/screenshots/launcher.png"/>
+</p>
 
-![AutoRune](src/main/resources/screenshots/screenshot.png)
+<p align="center">
+  <img src="https://github.com/bhjelmar/AutoRune/blob/master/src/main/resources/screenshots/screenshot.png"/>
+</p>
 
 ## Supported Platforms
 
