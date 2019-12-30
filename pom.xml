@@ -10,17 +10,13 @@
 
     <properties>
         <jdk.version>13.0.1</jdk.version>
+        <openjfx.version>13.0.1</openjfx.version>
     </properties>
 
     <build>
         <finalName>AutoRune</finalName>
-        <!--<resources>-->
-        <!--<resource>-->
-        <!--<directory>src/main/resources</directory>-->
-        <!--<targetPath>../jfx/app/resources</targetPath>-->
-        <!--</resource>-->
-        <!--</resources>-->
         <plugins>
+            <!--to build project-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -42,6 +38,25 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!--to run project javafx:run-->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.3</version>
+                <configuration>
+                    <mainClass>com.bhjelmar.Main</mainClass>
+                    <source>13</source>
+                    <target>13</target>
+                    <options>
+                        <option>--enable-preview</option>
+                        <option>--add-exports=javafx.base/com.sun.javafx=AutoRune</option>
+                    </options>
+                    <commandlineArgs>
+                        DEBUG
+                    </commandlineArgs>
+                </configuration>
+            </plugin>
+            <!--to package project jfx:native-->
             <plugin>
                 <groupId>com.zenjava</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
@@ -52,28 +67,8 @@
                     <bundler>EXE</bundler>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.3</version>
-                <configuration>
-                    <mainClass>com.bhjelmar.Main</mainClass>
-                    <options>
-                        <option>--enable-preview</option>
-                        <option>--add-exports=javafx.base/com.sun.javafx=AutoRune</option>
-                    </options>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
-
-    <repositories>
-        <repository>
-            <id>projectlombok.org</id>
-            <url>https://projectlombok.org/edge-releases</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
@@ -176,22 +171,22 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>${jdk.version}</version>
+            <version>${openjfx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
-            <version>${jdk.version}</version>
+            <version>${openjfx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-web</artifactId>
-            <version>${jdk.version}</version>
+            <version>${openjfx.version}</version>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
-            <version>${jdk.version}</version>
+            <version>${openjfx.version}</version>
         </dependency>
     </dependencies>
 </project>

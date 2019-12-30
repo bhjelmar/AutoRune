@@ -23,7 +23,6 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-import javafx.stage.Stage;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -38,9 +37,6 @@ import java.util.Objects;
 @Log4j2
 public class RuneSelectionController extends BaseController {
 
-	@Setter
-	private Stage primaryStage;
-
 	public Label championNameLabel;
 	public VBox runesPane;
 	public ImageView championImage;
@@ -51,9 +47,9 @@ public class RuneSelectionController extends BaseController {
 	public BorderPane window;
 
 	@Setter
-	private Champion champion;
+	private static Champion champion;
 	@Setter
-	private Map<String, List<RuneSelection>> runesMap;
+	private static Map<String, List<RuneSelection>> runesMap;
 
 	private static ClassLoader classLoader = RuneSelectionController.class.getClassLoader();
 
@@ -67,6 +63,22 @@ public class RuneSelectionController extends BaseController {
 	@FXML
 	private TabPane roleSelection;
 
+	@SneakyThrows
+	public static void start(Champion champion, Map<String, List<RuneSelection>> runesMap) {
+		RuneSelectionController.setChampion(champion);
+		RuneSelectionController.setRunesMap(runesMap);
+
+		FXMLLoader loader = new FXMLLoader(RuneSelectionController.class.getResource("/fxml/runesSelection.fxml"));
+		Parent root = loader.load();
+
+		Scene scene = new Scene(root, 700, 900);
+		scene.getStylesheets().add("/css/main.css");
+
+		BaseController.getPrimaryStage().setScene(scene);
+		BaseController.getPrimaryStage().show();
+		BaseController.getPrimaryStage().toFront();
+	}
+
 	public void initialize() {
 		sharedState();
 
@@ -78,7 +90,7 @@ public class RuneSelectionController extends BaseController {
 				window.setStyle("-fx-background-image: url('" + championSplashUrl + "');");
 			} else {
 				log.debug("Unable to find {}", championSplashUrl);
-				window.setStyle("-fx-background-image: url('https://cdn.vox-cdn.com/uploads/chorus_image/image/57522479/Ez_preseason.0.jpg');");
+				window.setStyle("-fx-background-image: url('images/default.jpg');");
 			}
 		} catch (UnirestException e) {
 			log.error(e.getLocalizedMessage(), e);
@@ -136,7 +148,7 @@ public class RuneSelectionController extends BaseController {
 
 				createNewPage(selectedRoleAndRune);
 
-				loadStartupScene();
+				StartupController.start();
 			});
 			webView.setOnMouseEntered(event -> {
 				webView.setOpacity(.85);
@@ -213,21 +225,6 @@ public class RuneSelectionController extends BaseController {
 		} else {
 			log.error("Cannot find rune page named AutoRune. Please create page.");
 		}
-	}
-
-	@SneakyThrows
-	private void loadStartupScene() {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/startup.fxml"));
-		Parent root = loader.load();
-		primaryStage.setTitle("AutoRune");
-		primaryStage.getIcons().add(new Image("/images/icon.png"));
-		Scene scene = new Scene(root, 450, 350);
-		scene.getStylesheets().add("/css/main.css");
-		primaryStage.setResizable(false);
-		primaryStage.setScene(scene);
-		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
-		primaryStage.show();
-		((StartupController) loader.getController()).onWindowLoad();
 	}
 
 }

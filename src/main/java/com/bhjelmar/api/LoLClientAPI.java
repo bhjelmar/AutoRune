@@ -34,46 +34,58 @@ public class LoLClientAPI {
 
 	public Pair<String, StartupController.Severity> setLoLClientInfo() {
 		if (PlatformUtil.isWindows()) {
-			return setLoLClientInfoWindows();
-		} else if (PlatformUtil.isMac()) {
-			return setLoLClientInfoMac();
-		} else if (PlatformUtil.isUnix()) {
-			return setLoLClientInfoUnix();
+			return setLoLClientInfo(
+				"LeagueClientUx.exe",
+				System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
 		} else {
-			return Pair.of("Unable to determine you operating system.", StartupController.Severity.ERROR);
+			String[] cmd = {
+				"/bin/sh",
+				"-c",
+				"ps -ef | grep \"League of Legends.app/Contents/MacOS/LeagueClientUx\" | grep -v \"grep\""
+			};
+			return setLoLClientInfo(
+				"LeagueClientUx",
+				cmd);
 		}
 	}
 
-	private Pair<String, StartupController.Severity> setLoLClientInfoMac() {
-		return Pair.of("Mac OS not yet supported.", StartupController.Severity.ERROR);
-	}
-
-	private Pair<String, StartupController.Severity> setLoLClientInfoUnix() {
-		return Pair.of("Mac OS not yet supported.", StartupController.Severity.ERROR);
-	}
-
-	private Pair<String, StartupController.Severity> setLoLClientInfoWindows() {
+	private Pair<String, StartupController.Severity> setLoLClientInfo(String processName, String... command) {
 		Runtime runtime = Runtime.getRuntime();
 		Pair<String, StartupController.Severity> message;
 		try {
-			Process proc = runtime.exec(System.getenv().get("SystemRoot") + "\\System32\\wbem\\WMIC.exe process where name='leagueclientux.exe' get commandline");
+			Process proc = runtime.exec(command);
 			try (InputStream inputstream = proc.getInputStream();
 				 InputStreamReader inputstreamreader = new InputStreamReader(inputstream, StandardCharsets.UTF_8);
 				 BufferedReader bufferedreader = new BufferedReader(inputstreamreader)
 			) {
 				String line;
 				while ((line = bufferedreader.readLine()) != null) {
-					if (line.contains("LeagueClientUx.exe")) {
+					if (line.contains(processName)) {
 						int beginningOfToken = line.indexOf("--remoting-auth-token=") + "--remoting-auth-token=".length();
-						int endOfToken = line.indexOf("\"", beginningOfToken);
+						int endOfToken;
+						if (PlatformUtil.isWindows()) {
+							endOfToken = line.indexOf("\"", beginningOfToken);
+						} else { // Mac or Unix
+							endOfToken = line.indexOf(" ", beginningOfToken);
+						}
 						remotingAuthToken = line.substring(beginningOfToken, endOfToken);
 
 						int beginningOfPort = line.indexOf("--app-port=") + "--app-port=".length();
-						int endOfPort = line.indexOf("\"", beginningOfPort);
+						int endOfPort;
+						if (PlatformUtil.isWindows()) {
+							endOfPort = line.indexOf("\"", beginningOfPort);
+						} else { // Mac or Unix
+							endOfPort = line.indexOf(" ", beginningOfPort);
+						}
 						port = line.substring(beginningOfPort, endOfPort);
 
 						int beginningOfPid = line.indexOf("--app-pid=") + "--app-pid=".length();
-						int endOfPid = line.indexOf("\"", beginningOfPid);
+						int endOfPid;
+						if (PlatformUtil.isWindows()) {
+							endOfPid = line.indexOf("\"", beginningOfPid);
+						} else { // Mac or Unix
+							endOfPid = line.indexOf(" ", beginningOfPid);
+						}
 						pid = line.substring(beginningOfPid, endOfPid);
 					}
 				}

@@ -22,4 +22,6 @@ module AutoRune {
 
 	opens com.bhjelmar.ui to javafx.fxml;
 	opens com.bhjelmar to javafx.graphics;
+	opens com.bhjelmar.api.response to gson;
+	opens com.bhjelmar.data to gson;
 }

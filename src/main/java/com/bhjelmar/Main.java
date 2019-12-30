@@ -1,13 +1,11 @@
 package com.bhjelmar;
 
+import com.bhjelmar.ui.BaseController;
 import com.bhjelmar.ui.StartupController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import javafx.application.Application;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
@@ -25,6 +23,9 @@ import java.security.cert.X509Certificate;
 public class Main extends Application {
 
 	public static void main(String[] args) {
+		if (args.length > 0 && "DEBUG".equals(args[0])) {
+			BaseController.setDebug(true);
+		}
 		configureUnirest();
 		launch();
 	}
@@ -78,18 +79,13 @@ public class Main extends Application {
 		Unirest.setHttpClient(httpclient);
 	}
 
-	public void start(Stage primaryStage) throws Exception {
-		FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/startup.fxml"));
-		Parent root = loader.load();
+	public void start(Stage primaryStage) {
 		primaryStage.setTitle("AutoRune");
 		primaryStage.getIcons().add(new Image("/images/icon.png"));
-		Scene scene = new Scene(root, 450, 350);
-		scene.getStylesheets().add("/css/main.css");
 		primaryStage.setResizable(false);
-		primaryStage.setScene(scene);
-		((StartupController) loader.getController()).setPrimaryStage(primaryStage);
-		primaryStage.show();
-		((StartupController) loader.getController()).onWindowLoad();
-	}
+		primaryStage.setMaximized(true);
 
+		BaseController.setPrimaryStage(primaryStage);
+		StartupController.start();
+	}
 }

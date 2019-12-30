@@ -9,6 +9,7 @@ import com.bhjelmar.data.RuneSelection;
 import com.bhjelmar.util.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.sun.javafx.PlatformUtil;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
@@ -27,16 +28,13 @@ import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
-import javafx.stage.Stage;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -59,19 +57,30 @@ public class StartupController extends BaseController {
 	public HBox hbox;
 	public TextFlow textFlow;
 	public ScrollPane textScroll;
-	@Setter
-	private Stage primaryStage;
 
 	@Getter
 	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
 	@Getter
 	private Pair<String, Map<Integer, Integer>> versionedSkinIdMap;
 
+	@SneakyThrows
+	public static void start() {
+		FXMLLoader loader = new FXMLLoader(StartupController.class.getResource("/fxml/startup.fxml"));
+		Parent root = loader.load();
+
+		Scene scene = new Scene(root, 450, 350);
+		scene.getStylesheets().add("/css/main.css");
+
+		BaseController.getPrimaryStage().setScene(scene);
+		BaseController.getPrimaryStage().show();
+
+		((StartupController) loader.getController()).onWindowLoad();
+	}
+
 	public void initialize() {
 		sharedState();
 		lolClientAPI = new LoLClientAPI();
 
-		// TODO: why does this not  throw exception
 		window.setStyle("-fx-background-image: url('images/default.jpg');");
 		autoRuneIcon.setImage(new Image("images/icon.png"));
 		autoRuneIcon.setFitWidth(50);
@@ -92,13 +101,13 @@ public class StartupController extends BaseController {
 				beginProcessingLoop();
 			}
 		}
-
 		browseDirectory.setOnMouseClicked(e -> {
 			lolHomeDirectory.setText(selectLoLHome());
 			beginProcessingLoop();
 		});
 	}
 
+	@SneakyThrows
 	private void beginProcessingLoop() {
 		if (validLoLHome(lolHomeDirectory.getText())) {
 			selectLoLHomeText.setText("Found League of Legends!");
@@ -106,13 +115,34 @@ public class StartupController extends BaseController {
 
 			Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
-			Task<Void> task = new Task<Void>() {
+			Task<Void> task = new Task<>() {
+				@SneakyThrows
 				public Void call() {
 					initializeData();
 					waitForLeagueLogin();
 					String summonerId = getSummonerId(lolHomeDirectory.getText());
-					Champion champion = waitForChampionLockIn(summonerId);
+
+					logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
+					logToWindowConsole("Moving window to background.", Severity.INFO);
+
+					Thread.sleep(2500);
+
+					Platform.runLater(() -> BaseController.getPrimaryStage().toBack());
+
+					Champion champion;
+					if (!BaseController.isDebug()) {
+						champion = waitForChampionLockIn(summonerId);
+					} else {
+						// get random champion
+						champion = versionedIdChampionMap.getRight().values().stream()
+							.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
+							.findAny().get();
+					}
+					logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
+
+					logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
 					Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
+
 					loadRuneSelectionScene(champion, runesMap);
 					return null;
 				}
@@ -132,14 +162,20 @@ public class StartupController extends BaseController {
 
 	private String selectLoLHome() {
 		DirectoryChooser directoryChooser = new DirectoryChooser();
-		File selectedFile = directoryChooser.showDialog(primaryStage);
+		File selectedFile = directoryChooser.showDialog(BaseController.getPrimaryStage());
 		return selectedFile.getPath();
 	}
 
 	@SneakyThrows
 	private boolean validLoLHome(String lolHomeDirectory) {
+		String lolApplicationName;
+		if (PlatformUtil.isWindows()) {
+			lolApplicationName = "LeagueClient.exe";
+		} else { // Mac
+			lolApplicationName = "League of Legends.app";
+		}
 		return java.nio.file.Files.list(Paths.get(lolHomeDirectory))
-			.anyMatch(e -> e.getFileName().toString().equals("LeagueClient.exe"));
+			.anyMatch(e -> e.getFileName().toString().equals(lolApplicationName));
 	}
 
 	private String getSummonerId(String lolHome) {
@@ -152,7 +188,6 @@ public class StartupController extends BaseController {
 	}
 
 	private Champion waitForChampionLockIn(String summonerId) {
-		logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
 		Champion champion = null;
 		while (champion == null) {
 			String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "/lol-champ-select/v1/session");
@@ -180,7 +215,6 @@ public class StartupController extends BaseController {
 				champion.setName(championName);
 			}
 		}
-		logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
 		return champion;
 	}
 
@@ -212,10 +246,11 @@ public class StartupController extends BaseController {
 	@SneakyThrows
 	private void waitForLeagueLogin() {
 		logToWindowConsole("Waiting for LoL Process to Start.", Severity.INFO);
-		lolClientAPI.setLoLClientInfo();
+		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
+		logToWindowConsole(message.getLeft(), message.getRight());
 		while (lolClientAPI.getPid() == null || lolClientAPI.getPid().equals("null")) {
 			Thread.sleep(5000);
-			Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
+			message = lolClientAPI.setLoLClientInfo();
 			logToWindowConsole(message.getLeft(), message.getRight());
 		}
 		logToWindowConsole("LoL Process found.", Severity.INFO);
@@ -223,30 +258,8 @@ public class StartupController extends BaseController {
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
 		logToWindowConsole("Starting up runes selection...", Severity.INFO);
-
 		Platform.runLater(() -> {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/runesSelection.fxml"));
-			Parent root = null;
-			try {
-				root = loader.load();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			primaryStage.setTitle("AutoRune");
-			primaryStage.getIcons().add(new Image("/images/icon.png"));
-			Scene scene = new Scene(root, 700, 900);
-			scene.getStylesheets().add("/css/main.css");
-			primaryStage.setResizable(false);
-			primaryStage.setScene(scene);
-			primaryStage.show();
-			((RuneSelectionController) loader.getController()).setPrimaryStage(primaryStage);
-
-			((RuneSelectionController) loader.getController()).setChampion(champion);
-			((RuneSelectionController) loader.getController()).setRunesMap(runesMap);
-
-			primaryStage.setMaximized(true);
-			primaryStage.setWidth(700);
-			primaryStage.setHeight(900);
+			RuneSelectionController.start(champion, runesMap);
 		});
 	}
 

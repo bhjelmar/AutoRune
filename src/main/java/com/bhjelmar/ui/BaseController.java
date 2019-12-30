@@ -2,6 +2,9 @@ package com.bhjelmar.ui;
 
 import javafx.scene.control.Hyperlink;
 import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.awt.*;
@@ -12,9 +15,17 @@ import java.net.URISyntaxException;
 @Log4j2
 public abstract class BaseController {
 
+	@Getter
+	@Setter
+	private static Stage primaryStage;
+
 	public GridPane footer;
 	public Hyperlink donate;
 	public Hyperlink contribute;
+
+	@Getter
+	@Setter
+	private static boolean debug = false;
 
 	public void sharedState() {
 		footer.setStyle("-fx-background-color: #2b2b2b;");

@@ -1,6 +1,7 @@
 package com.bhjelmar.util;
 
 import com.bhjelmar.data.Champion;
+import com.sun.javafx.PlatformUtil;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.lang3.StringUtils;
@@ -56,6 +57,9 @@ public class Files {
 
 	@SneakyThrows
 	public static String grepStreamingFile(String lolHome, boolean startAtBeginOfFile, String key) {
+		if (PlatformUtil.isMac() || PlatformUtil.isUnix()) {
+			lolHome += "/League of Legends.app/Contents/LoL";
+		}
 		Path dir = Paths.get(lolHome + "/Logs/LeagueClient Logs");
 		Optional<Path> lastFilePath = java.nio.file.Files.list(dir)
 			.filter(f -> !java.nio.file.Files.isDirectory(f) && StringUtils.endsWith(f.toString(), "_LeagueClient.log"))
@@ -93,7 +97,6 @@ public class Files {
 					String line;
 					while ((line = readWriteFileAccess.readLine()) != null) {
 						if (line.contains(key)) {
-							log.info(line);
 							return line;
 						}
 					}
