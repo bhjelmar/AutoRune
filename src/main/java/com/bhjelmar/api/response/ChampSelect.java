@@ -7,11 +7,11 @@ import java.util.List;
 @Data
 public class ChampSelect {
 
-	private List<List<ActionsBean>> actions;
-	private List<MyTeamBean> myTeam;
+	private List<List<Actions>> actions;
+	private List<MyTeam> myTeam;
 
 	@Data
-	public static class ActionsBean {
+	public static class Actions {
 		private int actorCellId;
 		private int championId;
 		private boolean completed;
@@ -21,7 +21,7 @@ public class ChampSelect {
 	}
 
 	@Data
-	public static class MyTeamBean {
+	public static class MyTeam {
 		private String assignedPosition;
 		private int cellId;
 		private int championId;

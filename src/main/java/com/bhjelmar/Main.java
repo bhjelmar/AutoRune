@@ -81,7 +81,7 @@ public class Main extends Application {
 
 	public void start(Stage primaryStage) {
 		primaryStage.setTitle("AutoRune");
-		primaryStage.getIcons().add(new Image("/images/icon.png"));
+		primaryStage.getIcons().add(new Image("/images/icons/96x96.png"));
 		primaryStage.setResizable(false);
 		primaryStage.setMaximized(true);
 

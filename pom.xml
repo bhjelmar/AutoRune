@@ -9,8 +9,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <jdk.version>13.0.1</jdk.version>
-        <openjfx.version>13.0.1</openjfx.version>
+        <jdk.version>1.8</jdk.version>
     </properties>
 
     <build>
@@ -23,39 +22,24 @@
                 <version>3.8.0</version>
                 <inherited>true</inherited>
                 <configuration>
-                    <source>13</source>
-                    <target>13</target>
-                    <compilerArgs>
-                        <arg>--enable-preview</arg>
-                        <arg>--add-exports=javafx.base/com.sun.javafx=AutoRune</arg>
-                    </compilerArgs>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>1.18.10</version>
-                        </path>
-                    </annotationProcessorPaths>
+                    <source>8</source>
+                    <target>8</target>
                 </configuration>
             </plugin>
-            <!--to run project javafx:run-->
-            <plugin>
-                <groupId>org.openjfx</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>0.0.3</version>
-                <configuration>
-                    <mainClass>com.bhjelmar.Main</mainClass>
-                    <source>13</source>
-                    <target>13</target>
-                    <options>
-                        <option>--enable-preview</option>
-                        <option>--add-exports=javafx.base/com.sun.javafx=AutoRune</option>
-                    </options>
-                    <commandlineArgs>
-                        DEBUG
-                    </commandlineArgs>
-                </configuration>
-            </plugin>
+            <!--            &lt;!&ndash;to run project javafx:run&ndash;&gt;-->
+            <!--            <plugin>-->
+            <!--                <groupId>org.openjfx</groupId>-->
+            <!--                <artifactId>javafx-maven-plugin</artifactId>-->
+            <!--                <version>0.0.3</version>-->
+            <!--                <configuration>-->
+            <!--                    <mainClass>com.bhjelmar.Main</mainClass>-->
+            <!--                    <source>${jdk.version}</source>-->
+            <!--                    <target>${jdk.version}</target>-->
+            <!--                    <commandlineArgs>-->
+            <!--                        DEBUG-->
+            <!--                    </commandlineArgs>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
             <!--to package project jfx:native-->
             <plugin>
                 <groupId>com.zenjava</groupId>
@@ -64,7 +48,7 @@
                 <configuration>
                     <vendor>bhjelmar</vendor>
                     <mainClass>com.bhjelmar.Main</mainClass>
-                    <bundler>EXE</bundler>
+                    <bundler>DMG</bundler>
                 </configuration>
             </plugin>
         </plugins>
@@ -167,26 +151,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpmime</artifactId>
             <version>4.3.6</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>${openjfx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-fxml</artifactId>
-            <version>${openjfx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-web</artifactId>
-            <version>${openjfx.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-media</artifactId>
-            <version>${openjfx.version}</version>
         </dependency>
     </dependencies>
 </project>

@@ -112,7 +112,6 @@ public class RuneSelectionController extends BaseController {
 				Media media = new Media(new File(Objects.requireNonNull(classLoader.getResource("audio/tabSelect.wav")).getFile()).toURI().toString());
 				MediaPlayer sound = new MediaPlayer(media);
 				sound.play();
-
 				createRunesList(t1.getText());
 			}
 		);

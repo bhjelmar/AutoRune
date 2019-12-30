@@ -1,5 +1,7 @@
 # AutoRune
 
+![AutoRune](src/main/resources/images/icons/96x96.png)
+
 AutoRune is a program which enables you to swiftly create rune pages based on data provided by op.gg.
 
 Simply leave AutoRune running in the background. When you lock in a champion, the UI will pop up and you can simply click on a Rune Page to have it automatically uploaded and selected for you.

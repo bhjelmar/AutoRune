@@ -82,7 +82,7 @@ public class StartupController extends BaseController {
 		lolClientAPI = new LoLClientAPI();
 
 		window.setStyle("-fx-background-image: url('images/default.jpg');");
-		autoRuneIcon.setImage(new Image("images/icon.png"));
+		autoRuneIcon.setImage(new Image("images/icons/96x96.png"));
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
@@ -109,55 +109,61 @@ public class StartupController extends BaseController {
 
 	@SneakyThrows
 	private void beginProcessingLoop() {
-		if (validLoLHome(lolHomeDirectory.getText())) {
-			selectLoLHomeText.setText("Found League of Legends!");
-			selectLoLHomeText.setFill(Paint.valueOf("Green"));
-
-			Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
-
-			Task<Void> task = new Task<>() {
-				@SneakyThrows
-				public Void call() {
-					initializeData();
-					waitForLeagueLogin();
-					String summonerId = getSummonerId(lolHomeDirectory.getText());
-
-					logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
-					logToWindowConsole("Moving window to background.", Severity.INFO);
-
-					Thread.sleep(2500);
-
-					Platform.runLater(() -> BaseController.getPrimaryStage().toBack());
-
-					Champion champion;
-					if (!BaseController.isDebug()) {
-						champion = waitForChampionLockIn(summonerId);
-					} else {
-						// get random champion
-						champion = versionedIdChampionMap.getRight().values().stream()
-							.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
-							.findAny().get();
-					}
-					logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
-
-					logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
-					Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
-
-					loadRuneSelectionScene(champion, runesMap);
-					return null;
-				}
-			};
-
-			task.setOnFailed(evt -> {
-				logToWindowConsole("The task failed with the following exception: " + task.getException().getLocalizedMessage(), Severity.ERROR);
-				task.getException().printStackTrace(System.err);
-			});
-			new Thread(task).start();
-
-		} else {
+		if (!validLoLHome(lolHomeDirectory.getText())) {
 			selectLoLHomeText.setText("Are you sure LoL is installed here?");
 			selectLoLHomeText.setFill(Paint.valueOf("Red"));
+			return;
 		}
+
+		selectLoLHomeText.setText("Found League of Legends!");
+		selectLoLHomeText.setFill(Paint.valueOf("Green"));
+
+		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
+
+		Task<Void> task = new Task<Void>() {
+			@SneakyThrows
+			public Void call() {
+				if (!initializeData()) {
+					logToWindowConsole("Startup failed. Exiting.", Severity.ERROR);
+					Thread.sleep(2500);
+					return null;
+				}
+				logToWindowConsole("Startup completed successfully!", Severity.INFO);
+				logToWindowConsole("AutoRune will move to the background and await champion lock in.", Severity.INFO);
+
+				Thread.sleep(5000);
+				Platform.runLater(() -> {
+					BaseController.getPrimaryStage().toBack();
+				});
+
+				blockForLeagueLogin();
+				String summonerId = blockForSummonerId(lolHomeDirectory.getText());
+				logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
+
+				Champion champion;
+				if (!BaseController.isDebug()) {
+					champion = blockForChampionLockIn(summonerId);
+				} else {
+					// get random champion
+					champion = versionedIdChampionMap.getRight().values().stream()
+						.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
+						.findAny().get();
+				}
+				logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
+
+				logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
+				Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
+
+				loadRuneSelectionScene(champion, runesMap);
+				return null;
+			}
+		};
+
+		task.setOnFailed(evt -> {
+			logToWindowConsole("The task failed with the following exception: " + task.getException().getLocalizedMessage(), Severity.ERROR);
+			task.getException().printStackTrace(System.err);
+		});
+		new Thread(task).start();
 	}
 
 	private String selectLoLHome() {
@@ -178,7 +184,7 @@ public class StartupController extends BaseController {
 			.anyMatch(e -> e.getFileName().toString().equals(lolApplicationName));
 	}
 
-	private String getSummonerId(String lolHome) {
+	private String blockForSummonerId(String lolHome) {
 		logToWindowConsole("Scraping log files for summonerId", Severity.INFO);
 		String line = Files.grepStreamingFile(lolHome, true, "Received current-summoner ID change (0 -> ");
 		String summonerId = StringUtils.substringAfter(line, "-> ");
@@ -187,7 +193,7 @@ public class StartupController extends BaseController {
 		return summonerId;
 	}
 
-	private Champion waitForChampionLockIn(String summonerId) {
+	private Champion blockForChampionLockIn(String summonerId) {
 		Champion champion = null;
 		while (champion == null) {
 			String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "/lol-champ-select/v1/session");
@@ -196,9 +202,9 @@ public class StartupController extends BaseController {
 			Gson gson = new GsonBuilder().create();
 			ChampSelect champSelect = gson.fromJson(payload, ChampSelect.class);
 
-			ChampSelect.MyTeamBean myChampion = champSelect.getMyTeam().stream()
+			ChampSelect.MyTeam myChampion = champSelect.getMyTeam().stream()
 				.filter(e -> Integer.toString(e.getSummonerId()).equals(summonerId) && e.getChampionId() != 0)
-				.findFirst().orElse(new ChampSelect.MyTeamBean());
+				.findFirst().orElse(new ChampSelect.MyTeam());
 			boolean championLockedIn = champSelect.getActions().stream()
 				.flatMap(List::stream)
 				.anyMatch(e -> e.getActorCellId() == myChampion.getCellId() && e.isCompleted());
@@ -218,7 +224,7 @@ public class StartupController extends BaseController {
 		return champion;
 	}
 
-	private void initializeData() {
+	private boolean initializeData() {
 		logToWindowConsole("Getting Current LoL version.", Severity.INFO);
 		String currentLoLVersion = DataDragonAPI.getCurrentLOLVersion();
 		logToWindowConsole("Current lol version is " + currentLoLVersion, Severity.INFO);
@@ -240,11 +246,11 @@ public class StartupController extends BaseController {
 			versionedIdChampionMap = shouldRefresh.getRight().getLeft();
 			versionedSkinIdMap = shouldRefresh.getRight().getRight();
 		}
-		logToWindowConsole("Startup completed successfully!", Severity.INFO);
+		return versionedIdChampionMap != null && versionedSkinIdMap != null;
 	}
 
 	@SneakyThrows
-	private void waitForLeagueLogin() {
+	private void blockForLeagueLogin() {
 		logToWindowConsole("Waiting for LoL Process to Start.", Severity.INFO);
 		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
 		logToWindowConsole(message.getLeft(), message.getRight());
@@ -253,7 +259,6 @@ public class StartupController extends BaseController {
 			message = lolClientAPI.setLoLClientInfo();
 			logToWindowConsole(message.getLeft(), message.getRight());
 		}
-		logToWindowConsole("LoL Process found.", Severity.INFO);
 	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
@@ -268,22 +273,22 @@ public class StartupController extends BaseController {
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");
 		switch (severity) {
-			case INFO -> {
+			case INFO:
 				log.info(text);
 				t.setFill(Paint.valueOf("White"));
-			}
-			case WARN -> {
+				break;
+			case WARN:
 				log.warn(text);
 				t.setFill(Paint.valueOf("Yellow"));
-			}
-			case ERROR -> {
+				break;
+			case ERROR:
 				log.error(text);
 				t.setFill(Paint.valueOf("Red"));
-			}
-			case DEBUG -> {
+				break;
+			case DEBUG:
 				log.debug(text);
 				t.setFill(Paint.valueOf("Blue"));
-			}
+				break;
 		}
 		Platform.runLater(() -> {
 			textFlow.getChildren().add(t);

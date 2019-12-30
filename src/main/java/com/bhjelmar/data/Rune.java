@@ -1,11 +1,11 @@
 package com.bhjelmar.data;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
 import java.io.Serializable;
 
-@Data
+@Value
 @AllArgsConstructor
 public class Rune implements Serializable {
 

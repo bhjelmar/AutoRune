@@ -1,12 +1,12 @@
 package com.bhjelmar.data;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 import org.jsoup.nodes.Element;
 
 import java.util.List;
 
-@Data
+@Value
 @AllArgsConstructor
 public class RuneSelection {
 
