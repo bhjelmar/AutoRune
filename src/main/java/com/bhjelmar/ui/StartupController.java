@@ -27,6 +27,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
+import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.stage.DirectoryChooser;
@@ -64,6 +65,7 @@ public class StartupController extends BaseController {
 	@Getter
 	private static AtomicBoolean connectedLastIteration = new AtomicBoolean(false);
 	public ImageView statusLightIcon;
+	public VBox textVbox;
 
 	@Getter
 	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
@@ -96,7 +98,7 @@ public class StartupController extends BaseController {
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
 
-		statusLightIcon.setImage(new Image("images/red_light.png"));
+//		statusLightIcon.setImage(new Image("images/red_light.png"));
 		statusLightIcon.setFitWidth(25);
 		statusLightIcon.setFitHeight(25);
 
@@ -105,6 +107,8 @@ public class StartupController extends BaseController {
 		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 		textScroll.vvalueProperty().bind(textFlow.heightProperty());
+
+		textVbox.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3 0 3 0; -fx-padding: 10 0 10 0");
 	}
 
 	public void onWindowLoad() {
@@ -132,7 +136,7 @@ public class StartupController extends BaseController {
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
 
-		isLoggedInText.setText("Disconnected from League of Legends client.");
+		isLoggedInText.setText("Awaiting connection to League of Legends client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
@@ -145,14 +149,14 @@ public class StartupController extends BaseController {
 			Platform.runLater(() -> {
 				if (LoLClientAPI.isLoggedIn()) {
 					if (!connectedLastIteration.get()) {
-						statusLightIcon.setImage(new Image("images/green_light.png"));
+//						statusLightIcon.setImage(new Image("images/green_light.png"));
 						isLoggedInText.setText("Connected to League of  Legends client!");
 						logToWindowConsole("Connected to League of Legends client.", Severity.INFO);
 						isLoggedInText.setFill(Paint.valueOf("Green"));
 					}
 				} else {
 					if (connectedLastIteration.get()) {
-						statusLightIcon.setImage(new Image("images/red_light.png"));
+//						statusLightIcon.setImage(new Image("images/red_light.png"));
 						isLoggedInText.setText("Disconnected from League of  Legends client.");
 						logToWindowConsole("Disconnected from League of Legends client.", Severity.WARN);
 						logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
@@ -183,6 +187,7 @@ public class StartupController extends BaseController {
 				boolean continueLooping = true;
 				while (continueLooping) {
 					if (!LoLClientAPI.isLoggedIn()) {
+						summonerId = null;
 						Thread.sleep(1000);
 						continue;
 					}
@@ -344,6 +349,7 @@ public class StartupController extends BaseController {
 		SimpleDateFormat sdf = new SimpleDateFormat("hh.mm.ss");
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis());
 		Text t = new Text(sdf.format(timestamp) + ": " + text + "\n");
+		t.setFont(Font.font(java.awt.Font.MONOSPACED, 12));
 		switch (severity) {
 			case INFO:
 				log.info(text);

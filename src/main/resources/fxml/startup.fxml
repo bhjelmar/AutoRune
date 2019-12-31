@@ -31,21 +31,24 @@
             <center>
                 <VBox fx:id="vbox" alignment="CENTER" spacing="8" BorderPane.alignment="CENTER">
                     <children>
-                        <Text fx:id="selectLoLHomeText" fill="white" text="Select League of Legends Home Directory"
-                              textAlignment="CENTER">
-                            <font>
-                                <Font size="18.0"/>
-                            </font>
-                        </Text>
-                        <Text fx:id="isLoggedInText" fill="white" text=""
-                              textAlignment="CENTER">
-                            <font>
-                                <Font size="18.0"/>
-                            </font>
-                        </Text>
+                        <VBox fx:id="textVbox" alignment="CENTER" spacing="8" BorderPane.alignment="CENTER">
+                            <children>
+                                <Text fx:id="selectLoLHomeText" fill="white"
+                                      text="Select League of Legends Home Directory" textAlignment="CENTER">
+                                    <font>
+                                        <Font size="18.0"/>
+                                    </font>
+                                </Text>
+                                <Text fx:id="isLoggedInText" fill="white" text="" textAlignment="CENTER">
+                                    <font>
+                                        <Font size="18.0"/>
+                                    </font>
+                                </Text>
+                            </children>
+                        </VBox>
                         <HBox fx:id="hbox">
                             <TextField fx:id="lolHomeDirectory" prefWidth="400"/>
-                            <Button fx:id="browseDirectory" minWidth="70" alignment="TOP_LEFT" mnemonicParsing="false"
+                            <Button fx:id="browseDirectory" alignment="TOP_LEFT" minWidth="70" mnemonicParsing="false"
                                     text="Browse"/>
                         </HBox>
                         <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="183.0">
