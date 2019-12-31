@@ -51,7 +51,7 @@
                             <Button fx:id="browseDirectory" alignment="TOP_LEFT" minWidth="70" mnemonicParsing="false"
                                     text="Browse"/>
                         </HBox>
-                        <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="183.0">
+                        <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="283.0">
                             <TextFlow fx:id="textFlow"/>
                         </ScrollPane>
                     </children>
