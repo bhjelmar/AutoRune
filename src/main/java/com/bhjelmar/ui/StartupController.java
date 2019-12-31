@@ -135,9 +135,11 @@ public class StartupController extends BaseController {
 
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
+		selectLoLHomeText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
 
 		isLoggedInText.setText("Awaiting connection to League of Legends client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
+		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
