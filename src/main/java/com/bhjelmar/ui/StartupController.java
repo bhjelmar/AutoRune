@@ -43,6 +43,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Log4j2
 public class StartupController extends BaseController {
@@ -60,11 +61,15 @@ public class StartupController extends BaseController {
 	public HBox hbox;
 	public TextFlow textFlow;
 	public ScrollPane textScroll;
+	@Getter
+	private static AtomicBoolean connectedLastIteration = new AtomicBoolean(false);
+	public ImageView statusLightIcon;
 
 	@Getter
 	private Pair<String, Map<Integer, Champion>> versionedIdChampionMap;
 	@Getter
 	private Pair<String, Map<Integer, Integer>> versionedSkinIdMap;
+	public Text isLoggedInText;
 
 	@SneakyThrows
 	public static void start() {
@@ -74,10 +79,12 @@ public class StartupController extends BaseController {
 		Scene scene = new Scene(root, 450, 350);
 		scene.getStylesheets().add("/css/main.css");
 
-		BaseController.getPrimaryStage().setScene(scene);
-		BaseController.getPrimaryStage().show();
+		Platform.runLater(() -> {
+			BaseController.getPrimaryStage().setScene(scene);
+			BaseController.getPrimaryStage().show();
 
-		((StartupController) loader.getController()).onWindowLoad();
+			((StartupController) loader.getController()).onWindowLoad();
+		});
 	}
 
 	public void initialize() {
@@ -88,6 +95,10 @@ public class StartupController extends BaseController {
 		autoRuneIcon.setImage(new Image("images/icons/96x96.png"));
 		autoRuneIcon.setFitWidth(50);
 		autoRuneIcon.setFitHeight(50);
+
+		statusLightIcon.setImage(new Image("images/red_light.png"));
+		statusLightIcon.setFitWidth(25);
+		statusLightIcon.setFitHeight(25);
 
 		textScroll.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3;");
 		textScroll.setFitToWidth(true);
@@ -121,11 +132,36 @@ public class StartupController extends BaseController {
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
 
+		isLoggedInText.setText("Disconnected from League of Legends client.");
+		isLoggedInText.setFill(Paint.valueOf("White"));
+
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
 		// Runs in the background and updates isLoggedIn every 5 seconds.
 		// Other methods in the task below observe the isLoggedIn.
-		Timeline leagueLoginVerification = new Timeline(new KeyFrame(Duration.seconds(5), event -> verifyLeagueLogin()));
+		Timeline leagueLoginVerification = new Timeline(new KeyFrame(Duration.seconds(5), event -> {
+//			logToWindowConsole("Ensuring LoL process is running...", Severity.DEBUG);
+			Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
+			Platform.runLater(() -> {
+				if (LoLClientAPI.isLoggedIn()) {
+					if (!connectedLastIteration.get()) {
+						statusLightIcon.setImage(new Image("images/green_light.png"));
+						isLoggedInText.setText("Connected to League of  Legends client!");
+						logToWindowConsole("Connected to League of Legends client.", Severity.INFO);
+						isLoggedInText.setFill(Paint.valueOf("Green"));
+					}
+				} else {
+					if (connectedLastIteration.get()) {
+						statusLightIcon.setImage(new Image("images/red_light.png"));
+						isLoggedInText.setText("Disconnected from League of  Legends client.");
+						logToWindowConsole("Disconnected from League of Legends client.", Severity.WARN);
+						logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
+						isLoggedInText.setFill(Paint.valueOf("Red"));
+					}
+				}
+				connectedLastIteration.set(LoLClientAPI.isLoggedIn());
+			});
+		}));
 		leagueLoginVerification.setCycleCount(Timeline.INDEFINITE);
 		leagueLoginVerification.play();
 
@@ -139,43 +175,54 @@ public class StartupController extends BaseController {
 				}
 
 				logToWindowConsole("Startup completed successfully!", Severity.INFO);
-				logToWindowConsole("AutoRune will move to the background and await champion lock in.", Severity.INFO);
-				Thread.sleep(5000);
-				Platform.runLater(() -> {
-					BaseController.getPrimaryStage().toBack();
-				});
+				logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
+//				logToWindowConsole("AutoRune will move to the background and await champion lock in.", Severity.INFO);
+//				Thread.sleep(3000);
 
+				String summonerId = null;
 				boolean continueLooping = true;
 				while (continueLooping) {
-					String summonerId = getSummonerId(lolHomeDirectory.getText());
-					if (summonerId == null) {
-						logToWindowConsole("No longer logged into league client.", Severity.INFO);
-					} else {
-						logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
-						Champion champion;
-						if (!BaseController.isDebug()) {
-							champion = getLockedInCHampion(summonerId);
-						} else {
-							// get random champion
-							champion = versionedIdChampionMap.getRight().values().stream()
-								.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
-								.findAny().get();
+					if (!LoLClientAPI.isLoggedIn()) {
+						Thread.sleep(1000);
+						continue;
+					}
+					if (summonerId == null || summonerId.equals("")) {
+						String lastIterationSummonerId = summonerId;
+						summonerId = getSummonerId(lolHomeDirectory.getText());
+						if (lastIterationSummonerId == null && summonerId.equals("")) {
+							logToWindowConsole("Unable to find summoner id.", Severity.INFO);
 						}
-						if (champion != null) {
-							continueLooping = false;
-							logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
-							logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
-
-							Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
-							loadRuneSelectionScene(champion, runesMap);
+						if (!summonerId.equals("")) {
+							logToWindowConsole("Discovered summoner id: " + summonerId + ".", Severity.INFO);
+							logToWindowConsole("Awaiting champion lock in.", Severity.INFO);
 						}
 					}
-					Thread.sleep(5000);
-				}
+					if (summonerId.equals("")) {
+						Thread.sleep(1000);
+						continue;
+					}
 
+					Champion champion;
+					if (!BaseController.isDebug()) {
+						champion = getLockedInCHampion(summonerId);
+					} else {
+						// get random champion
+						champion = versionedIdChampionMap.getRight().values().stream()
+							.skip((int) (versionedIdChampionMap.getRight().values().size() * Math.random()))
+							.findAny().get();
+					}
+					if (champion != null) {
+						continueLooping = false;
+						logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
+						logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
+
+						Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
+						loadRuneSelectionScene(champion, runesMap);
+					}
+				}
+				Thread.sleep(1000);
 				return null;
 			}
-
 		};
 		task.setOnFailed(evt -> {
 			logToWindowConsole("The task failed with the following exception: " + task.getException().getLocalizedMessage(), Severity.ERROR);
@@ -206,16 +253,14 @@ public class StartupController extends BaseController {
 	}
 
 	private String getSummonerId(String lolHome) {
-		logToWindowConsole("Scraping log files for summonerId", Severity.INFO);
+		logToWindowConsole("Searching for current summoner id.", Severity.INFO);
 		String line = Files.grepStreamingFile(lolHome, true, "Received current-summoner ID change (0 -> ");
 		// will be null when isLoggedIn is false (league client closed while we were processing)
 		if (line == null) {
-			return null;
+			return "";
 		}
 		String summonerId = StringUtils.substringAfter(line, "-> ");
-		summonerId = StringUtils.removeEnd(summonerId, ")");
-		logToWindowConsole("Discovered summoner id: " + summonerId, Severity.INFO);
-		return summonerId;
+		return StringUtils.removeEnd(summonerId, ")");
 	}
 
 	private Champion getLockedInCHampion(String summonerId) {
@@ -277,12 +322,16 @@ public class StartupController extends BaseController {
 		return versionedIdChampionMap != null && versionedSkinIdMap != null;
 	}
 
-	@SneakyThrows
-	private void verifyLeagueLogin() {
-		logToWindowConsole("Ensuring LoL process is running...", Severity.DEBUG);
-		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
-		logToWindowConsole(message.getLeft(), message.getRight());
-	}
+//	@SneakyThrows
+//	private void verifyLeagueLogin() {
+//		if(!StartupController.getConnectedLastIteration().get()) {
+//			logToWindowConsole("Ensuring LoL process is running...", Severity.DEBUG);
+//		}
+//		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
+//		if(!StartupController.getConnectedLastIteration().get()) {
+//			logToWindowConsole(message.getLeft(), message.getRight());
+//		}
+//	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
 		logToWindowConsole("Starting up runes selection...", Severity.INFO);

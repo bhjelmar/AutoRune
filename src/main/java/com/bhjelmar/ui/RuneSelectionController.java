@@ -1,6 +1,5 @@
 package com.bhjelmar.ui;
 
-import com.bhjelmar.api.RunesAPI;
 import com.bhjelmar.data.Champion;
 import com.bhjelmar.data.RunePage;
 import com.bhjelmar.data.RuneSelection;
@@ -202,8 +201,6 @@ public class RuneSelectionController extends BaseController {
 				.equalsIgnoreCase("AutoRune"))
 			.findFirst()
 			.orElse(null);
-
-		runesMap = RunesAPI.getOPGGRunes(champion);
 
 		if (apiPage != null) {
 			String mostFrequentPosition = runesMap.keySet().stream()
