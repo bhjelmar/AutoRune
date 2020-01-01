@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.jfoenix.controls.JFXButton?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
@@ -48,9 +49,11 @@
                             </children>
                         </VBox>
                         <HBox fx:id="hbox">
-                            <TextField fx:id="lolHomeDirectory" prefWidth="400"/>
-                            <Button fx:id="browseDirectory" alignment="TOP_LEFT" minWidth="70" mnemonicParsing="false"
-                                    text="Browse"/>
+                            <TextField fx:id="lolHomeDirectory" prefWidth="800" editable="false"
+                                       style="-fx-background-color: transparent; -fx-focus-color: transparent;"/>
+                            <JFXButton fx:id="browseDirectory" minWidth="100" prefHeight="40" buttonType="RAISED"
+                                       text="Browse"
+                                       style="-fx-text-fill:WHITE;-fx-background-color:#2b2b2b;"/>
                         </HBox>
                         <ScrollPane fx:id="textScroll" fitToWidth="true" prefHeight="283.0">
                             <TextFlow fx:id="textFlow"/>

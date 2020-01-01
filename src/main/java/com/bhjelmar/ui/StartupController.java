@@ -9,6 +9,7 @@ import com.bhjelmar.data.RuneSelection;
 import com.bhjelmar.util.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.jfoenix.controls.JFXButton;
 import com.sun.javafx.PlatformUtil;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -17,7 +18,6 @@ import javafx.concurrent.Task;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -55,7 +55,7 @@ public class StartupController extends BaseController {
 	public ImageView autoRuneIcon;
 	public TextField lolHomeDirectory;
 	public Text selectLoLHomeText;
-	public Button browseDirectory;
+	public JFXButton browseDirectory;
 	public BorderPane window;
 	public VBox vbox;
 	public BorderPane border;
@@ -109,7 +109,9 @@ public class StartupController extends BaseController {
 		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.2); -fx-background-radius: 3;");
 		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.2); -fx-background-radius: 3;");
 
-		textVbox.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3 0 3 0; -fx-padding: 10 0 10 0");
+		textVbox.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 2; -fx-border-width: 3 0 3 0; -fx-padding: 10 0 10 0");
+
+		lolHomeDirectory.setStyle("-fx-border-color: #2b2b2b; -fx-border-width: 3 3 3 3;");
 
 		selectLoLHomeText.setStyle("");
 		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
@@ -163,6 +165,7 @@ public class StartupController extends BaseController {
 						isLoggedInText.setFill(Paint.valueOf("Green"));
 						isLoggedInText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 						logToWindowConsole("Connected to LoL client.", Severity.INFO);
+						// TODO: move summoner ID detection logic to here
 					}
 				} else {
 					if (connectedLastIteration.get()) {
@@ -342,7 +345,7 @@ public class StartupController extends BaseController {
 		Pair<Boolean, Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>>> shouldRefresh
 			= Files.shouldUpdateStaticData(currentLoLVersion);
 		if (shouldRefresh.getLeft()) {
-			logToWindowConsole("Local data store not found, retrieving current champion data.", Severity.INFO);
+			logToWindowConsole("Updating data for patch " + currentLoLVersion + ".", Severity.INFO);
 			Pair<Pair<String, Map<Integer, Champion>>, Pair<String, Map<Integer, Integer>>> championAndSkinIds
 				= DataDragonAPI.getChampionSkinsAndIDs(currentLoLVersion);
 			versionedIdChampionMap = championAndSkinIds.getLeft();

@@ -5,8 +5,11 @@
     -fx-font-family: "Friz Quadrata";
 }
 
-.hyperlink:hover {
-    -fx-underline: true;
+/*Flat button example */
+.jfx-button {
+    -jfx-button-type: FLAT;
+    -fx-background-color: white;
+    -fx-text-fill: black;
 }
 
 .tab-pane .tab-header-area .tab-header-background {
