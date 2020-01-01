@@ -136,18 +136,18 @@ public class StartupController extends BaseController {
 		if (!validLoLHome(lolHomeDirectory.getText())) {
 			selectLoLHomeText.setText("Are you sure LoL is installed here?");
 			selectLoLHomeText.setFill(Paint.valueOf("Red"));
-			selectLoLHomeText.setStyle("-fx-stroke: #FF8080; -fx-stroke-width: 1;");
+			selectLoLHomeText.setStyle("-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 			return;
 		}
 
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
-		selectLoLHomeText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
+		selectLoLHomeText.setStyle("-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 
 		isLoggedInText.setText("Awaiting connection to LoL client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
-//		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-type: outside; -fx-stroke-width: 1;");
+		isLoggedInText.setStyle("-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		isLoggedInText.setFont(Font.font("Friz Quadrata", 18));
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
@@ -163,7 +163,7 @@ public class StartupController extends BaseController {
 //						statusLightIcon.setImage(new Image("images/green_light.png"));
 						isLoggedInText.setText("Connected to LoL client!");
 						isLoggedInText.setFill(Paint.valueOf("Green"));
-						isLoggedInText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
+						isLoggedInText.setStyle("-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 						logToWindowConsole("Connected to LoL client.", Severity.INFO);
 						// TODO: move summoner ID detection logic to here
 					}
@@ -172,7 +172,7 @@ public class StartupController extends BaseController {
 //						statusLightIcon.setImage(new Image("images/red_light.png"));
 						isLoggedInText.setText("Disconnected from LoL client.");
 						isLoggedInText.setFill(Paint.valueOf("Red"));
-						isLoggedInText.setStyle("-fx-stroke: #FF8080; -fx-stroke-type: outside; -fx-stroke-width: 1;");
+						isLoggedInText.setStyle("-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 						logToWindowConsole("Disconnected from LoL client.", Severity.ERROR);
 						logToWindowConsole("Awaiting connection to LoL client.", Severity.INFO);
 					}

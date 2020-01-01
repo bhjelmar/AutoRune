@@ -34,9 +34,9 @@
                     <children>
                         <VBox fx:id="textVbox" alignment="CENTER" spacing="8" BorderPane.alignment="CENTER">
                             <children>
-                                <Text fx:id="selectLoLHomeText" fill="white"
-                                      style="-fx-font-family: 'Friz Quadrata Regular'"
-                                      text="Select League of Legends Home Directory" textAlignment="CENTER">
+                                <Text fx:id="selectLoLHomeText" text="Select League of Legends Home Directory"
+                                      fill="white" textAlignment="CENTER"
+                                      style="-fx-stroke: #2d2d2d; -fx-stroke-type: outside; -fx-stroke-width: 1;">
                                     <font>
                                         <Font size="18.0"/>
                                     </font>
