@@ -74,7 +74,7 @@ public class StartupController extends BaseController {
 	public Text isLoggedInText;
 
 	@SneakyThrows
-	public static void start() {
+	public static void start(boolean comingFromRuneSelection) {
 		FXMLLoader loader = new FXMLLoader(StartupController.class.getResource("/fxml/startup.fxml"));
 		Parent root = loader.load();
 
@@ -85,7 +85,7 @@ public class StartupController extends BaseController {
 			BaseController.getPrimaryStage().setScene(scene);
 			BaseController.getPrimaryStage().show();
 
-			((StartupController) loader.getController()).onWindowLoad();
+			((StartupController) loader.getController()).onWindowLoad(comingFromRuneSelection);
 		});
 	}
 
@@ -106,31 +106,31 @@ public class StartupController extends BaseController {
 		textScroll.setFitToWidth(true);
 		textScroll.vvalueProperty().bind(textFlow.heightProperty()); // always keep scroll at bottom
 
-		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
-		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
+		border.setStyle("-fx-background-color: rgba(43, 43, 43, 0.2); -fx-background-radius: 3;");
+		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.2); -fx-background-radius: 3;");
 
 		textVbox.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3 0 3 0; -fx-padding: 10 0 10 0");
 
-		selectLoLHomeText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
+		selectLoLHomeText.setStyle("");
 		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 	}
 
-	public void onWindowLoad() {
+	public void onWindowLoad(boolean comingFromRuneSelection) {
 		if (new File("lolHome.ser").isFile()) {
 			String lolHome = Files.deserializeData("lolHome.ser");
 			if (lolHome != null) {
 				lolHomeDirectory.setText(lolHome);
-				beginProcessingLoop();
+				beginProcessingLoop(comingFromRuneSelection);
 			}
 		}
 		browseDirectory.setOnMouseClicked(e -> {
 			lolHomeDirectory.setText(selectLoLHome());
-			beginProcessingLoop();
+			beginProcessingLoop(comingFromRuneSelection);
 		});
 	}
 
 	@SneakyThrows
-	private void beginProcessingLoop() {
+	private void beginProcessingLoop(boolean comingFromRuneSelection) {
 		if (!validLoLHome(lolHomeDirectory.getText())) {
 			selectLoLHomeText.setText("Are you sure LoL is installed here?");
 			selectLoLHomeText.setFill(Paint.valueOf("Red"));
@@ -143,9 +143,9 @@ public class StartupController extends BaseController {
 		selectLoLHomeText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 
-		isLoggedInText.setText("Awaiting connection to League of Legends client.");
+		isLoggedInText.setText("Awaiting connection to LoL client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
-		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-type: outside; -fx-stroke-width: 1;");
+//		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		isLoggedInText.setFont(Font.font("Friz Quadrata", 18));
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
@@ -159,19 +159,19 @@ public class StartupController extends BaseController {
 				if (LoLClientAPI.isLoggedIn()) {
 					if (!connectedLastIteration.get()) {
 //						statusLightIcon.setImage(new Image("images/green_light.png"));
-						isLoggedInText.setText("Connected to League of  Legends client!");
+						isLoggedInText.setText("Connected to LoL client!");
 						isLoggedInText.setFill(Paint.valueOf("Green"));
 						isLoggedInText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
-						logToWindowConsole("Connected to League of Legends client.", Severity.INFO);
+						logToWindowConsole("Connected to LoL client.", Severity.INFO);
 					}
 				} else {
 					if (connectedLastIteration.get()) {
 //						statusLightIcon.setImage(new Image("images/red_light.png"));
-						isLoggedInText.setText("Disconnected from League of  Legends client.");
+						isLoggedInText.setText("Disconnected from LoL client.");
 						isLoggedInText.setFill(Paint.valueOf("Red"));
 						isLoggedInText.setStyle("-fx-stroke: #FF8080; -fx-stroke-type: outside; -fx-stroke-width: 1;");
-						logToWindowConsole("Disconnected from League of Legends client.", Severity.ERROR);
-						logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
+						logToWindowConsole("Disconnected from LoL client.", Severity.ERROR);
+						logToWindowConsole("Awaiting connection to LoL client.", Severity.INFO);
 					}
 				}
 				connectedLastIteration.set(LoLClientAPI.isLoggedIn());
@@ -183,6 +183,19 @@ public class StartupController extends BaseController {
 		Task<Void> task = new Task<Void>() {
 			@SneakyThrows
 			public Void call() {
+				if (comingFromRuneSelection) {
+					logToWindowConsole("Set runes for " + RuneSelectionController.getChampion().getName() + ".", Severity.INFO);
+					logToWindowConsole("Awaiting game start.", Severity.INFO);
+
+					// grep for POST_CHAMP_SELECT if champion is not already locked in
+					// already locked in a champion
+					while (!hasChampSelectEnded()) {
+						Thread.sleep(1000);
+					}
+					logToWindowConsole("Game start detected.", Severity.INFO);
+					Thread.sleep(5000);
+				}
+
 				if (!initializeData()) {
 					logToWindowConsole("Startup failed. Exiting.", Severity.ERROR);
 					Thread.sleep(2500);
@@ -190,11 +203,13 @@ public class StartupController extends BaseController {
 				}
 
 				logToWindowConsole("Startup completed successfully!", Severity.INFO);
-				logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
+				logToWindowConsole("Awaiting connection to LoL client.", Severity.INFO);
 //				logToWindowConsole("AutoRune will move to the background and await champion lock in.", Severity.INFO);
 //				Thread.sleep(3000);
 
 				String summonerId = null;
+				Champion champion = null;
+
 				boolean continueLooping = true;
 				while (continueLooping) {
 					if (!LoLClientAPI.isLoggedIn()) {
@@ -218,9 +233,7 @@ public class StartupController extends BaseController {
 						continue;
 					}
 
-					// grep for POST_CHAMP_SELECT if champion is not already locked in
-
-					Champion champion;
+					// no locked champion yet
 					if (!BaseController.isDebug()) {
 						champion = getLockedInChampion(summonerId);
 					} else {
@@ -250,6 +263,12 @@ public class StartupController extends BaseController {
 			leagueLoginVerification.stop();
 		});
 		new Thread(task).start();
+	}
+
+	private boolean hasChampSelectEnded() {
+		String line = Files.grepStreamingFile(lolHomeDirectory.getText(), false, "POST_CHAMP_SELECT");
+		return line != null;
+		// TODO: add support for someone  dodging, this will only handle games starting
 	}
 
 	private String selectLoLHome() {

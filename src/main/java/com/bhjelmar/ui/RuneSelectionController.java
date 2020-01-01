@@ -23,6 +23,7 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
@@ -47,6 +48,7 @@ public class RuneSelectionController extends BaseController {
 	public BorderPane window;
 
 	@Setter
+	@Getter
 	private static Champion champion;
 	@Setter
 	private static Map<String, List<RuneSelection>> runesMap;
@@ -151,7 +153,7 @@ public class RuneSelectionController extends BaseController {
 
 						createNewPage(selectedRoleAndRune);
 
-						StartupController.start();
+						StartupController.start(true);
 
 						return null;
 					}

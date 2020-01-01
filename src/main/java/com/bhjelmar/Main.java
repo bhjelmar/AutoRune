@@ -89,6 +89,6 @@ public class Main extends Application {
 		primaryStage.setMaximized(true);
 
 		BaseController.setPrimaryStage(primaryStage);
-		StartupController.start();
+		StartupController.start(false);
 	}
 }
