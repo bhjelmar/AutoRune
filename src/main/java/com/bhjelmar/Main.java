@@ -7,6 +7,7 @@ import com.mashape.unirest.http.ObjectMapper;
 import com.mashape.unirest.http.Unirest;
 import javafx.application.Application;
 import javafx.scene.image.Image;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import lombok.SneakyThrows;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -26,6 +27,9 @@ public class Main extends Application {
 		if (args.length > 0 && "DEBUG".equals(args[0])) {
 			BaseController.setDebug(true);
 		}
+		// bug report? Font::loadFont is unable to handle URLs with spaces...
+		Font.loadFont(Main.class.getResource("/fonts/FrizQuadrataRegular.ttf").toExternalForm(), 18);
+		System.out.println(Font.getFamilies().stream().filter(e -> e.contains("Friz")).findFirst());
 		configureUnirest();
 		launch();
 	}

@@ -1,16 +1,7 @@
 .root {
-
-
-    /*-fx-background-image: url("https://lolstatic-a.akamaihd.net/frontpage/apps/prod/preseason-2018/en_US/a6708b7ae3dbc0b25463f9c8e259a513d2c4c7e6/assets/img/meta/share_1024x1024.jpg");*/
-    /*-fx-background-image: url("https://am-a.akamaihd.net/image?resize=1680:&quality=preserve&f=https://lolstatic-a.akamaihd.net/frontpage/apps/prod/playnow-global/en_US/fc1312b6f05f6bbf465d387efbc5860767f01f30/assets/img/vi_bluebuff.jpg");*/
-    /*-fx-background-size: 100% auto;*/
-    /*-fx-background-size: 100% 100%;*/
     -fx-background-position: center center;
     -fx-background-repeat: no-repeat;
     -fx-background-size: 180% 100%;
-    /*-fx-height: 850px;*/
-    /*-fx-background-size: 90%;*/
-
 }
 
 .tab-pane .tab-header-area .tab-header-background {

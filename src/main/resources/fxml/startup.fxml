@@ -34,12 +34,13 @@
                         <VBox fx:id="textVbox" alignment="CENTER" spacing="8" BorderPane.alignment="CENTER">
                             <children>
                                 <Text fx:id="selectLoLHomeText" fill="white"
+                                      style="-fx-font-family: 'Friz Quadrata Regular'"
                                       text="Select League of Legends Home Directory" textAlignment="CENTER">
                                     <font>
                                         <Font size="18.0"/>
                                     </font>
                                 </Text>
-                                <Text fx:id="isLoggedInText" fill="white" text="" textAlignment="CENTER">
+                                <Text fx:id="isLoggedInText" fill="white" textAlignment="CENTER">
                                     <font>
                                         <Font size="18.0"/>
                                     </font>

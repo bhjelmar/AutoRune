@@ -78,7 +78,7 @@ public class StartupController extends BaseController {
 		FXMLLoader loader = new FXMLLoader(StartupController.class.getResource("/fxml/startup.fxml"));
 		Parent root = loader.load();
 
-		Scene scene = new Scene(root, 450, 450);
+		Scene scene = new Scene(root, 500, 450);
 		scene.getStylesheets().add("/css/main.css");
 
 		Platform.runLater(() -> {
@@ -138,10 +138,12 @@ public class StartupController extends BaseController {
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
 		selectLoLHomeText.setStyle("-fx-stroke: #80FF80; -fx-stroke-width: 1;");
+		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 
 		isLoggedInText.setText("Awaiting connection to League of Legends client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
 		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
+		isLoggedInText.setFont(Font.font("Friz Quadrata", 18));
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
 
@@ -250,7 +252,7 @@ public class StartupController extends BaseController {
 	private String selectLoLHome() {
 		DirectoryChooser directoryChooser = new DirectoryChooser();
 		File selectedFile = directoryChooser.showDialog(BaseController.getPrimaryStage());
-		return selectedFile.getPath();
+		return selectedFile == null ? "" : selectedFile.getPath();
 	}
 
 	@SneakyThrows
@@ -334,17 +336,6 @@ public class StartupController extends BaseController {
 		}
 		return versionedIdChampionMap != null && versionedSkinIdMap != null;
 	}
-
-//	@SneakyThrows
-//	private void verifyLeagueLogin() {
-//		if(!StartupController.getConnectedLastIteration().get()) {
-//			logToWindowConsole("Ensuring LoL process is running...", Severity.DEBUG);
-//		}
-//		Pair<String, Severity> message = lolClientAPI.setLoLClientInfo();
-//		if(!StartupController.getConnectedLastIteration().get()) {
-//			logToWindowConsole(message.getLeft(), message.getRight());
-//		}
-//	}
 
 	private void loadRuneSelectionScene(Champion champion, Map<String, List<RuneSelection>> runesMap) {
 		logToWindowConsole("Starting up runes selection...", Severity.INFO);
