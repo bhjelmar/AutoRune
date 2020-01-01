@@ -78,7 +78,7 @@ public class StartupController extends BaseController {
 		FXMLLoader loader = new FXMLLoader(StartupController.class.getResource("/fxml/startup.fxml"));
 		Parent root = loader.load();
 
-		Scene scene = new Scene(root, 500, 450);
+		Scene scene = new Scene(root, 450, 450);
 		scene.getStylesheets().add("/css/main.css");
 
 		Platform.runLater(() -> {
@@ -110,6 +110,9 @@ public class StartupController extends BaseController {
 		header.setStyle("-fx-background-color: rgba(43, 43, 43, 0.6); -fx-background-radius: 3;");
 
 		textVbox.setStyle("-fx-border-color: #2b2b2b; -fx-border-radius: 3; -fx-border-width: 3 0 3 0; -fx-padding: 10 0 10 0");
+
+		selectLoLHomeText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
+		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 	}
 
 	public void onWindowLoad() {
@@ -137,12 +140,12 @@ public class StartupController extends BaseController {
 
 		selectLoLHomeText.setText("Found League of Legends!");
 		selectLoLHomeText.setFill(Paint.valueOf("Green"));
-		selectLoLHomeText.setStyle("-fx-stroke: #80FF80; -fx-stroke-width: 1;");
+		selectLoLHomeText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		selectLoLHomeText.setFont(Font.font("Friz Quadrata", 18));
 
 		isLoggedInText.setText("Awaiting connection to League of Legends client.");
 		isLoggedInText.setFill(Paint.valueOf("White"));
-		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-width: 1;");
+		isLoggedInText.setStyle("-fx-stroke: #FFFFFF; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 		isLoggedInText.setFont(Font.font("Friz Quadrata", 18));
 
 		Files.serializeData(lolHomeDirectory.getText(), "lolHome.ser");
@@ -158,7 +161,7 @@ public class StartupController extends BaseController {
 //						statusLightIcon.setImage(new Image("images/green_light.png"));
 						isLoggedInText.setText("Connected to League of  Legends client!");
 						isLoggedInText.setFill(Paint.valueOf("Green"));
-						isLoggedInText.setStyle("-fx-stroke: #80FF80; -fx-stroke-width: 1;");
+						isLoggedInText.setStyle("-fx-stroke: #80FF80; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 						logToWindowConsole("Connected to League of Legends client.", Severity.INFO);
 					}
 				} else {
@@ -166,7 +169,7 @@ public class StartupController extends BaseController {
 //						statusLightIcon.setImage(new Image("images/red_light.png"));
 						isLoggedInText.setText("Disconnected from League of  Legends client.");
 						isLoggedInText.setFill(Paint.valueOf("Red"));
-						isLoggedInText.setStyle("-fx-stroke: #FF8080; -fx-stroke-width: 1;");
+						isLoggedInText.setStyle("-fx-stroke: #FF8080; -fx-stroke-type: outside; -fx-stroke-width: 1;");
 						logToWindowConsole("Disconnected from League of Legends client.", Severity.ERROR);
 						logToWindowConsole("Awaiting connection to League of Legends client.", Severity.INFO);
 					}
