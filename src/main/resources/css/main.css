@@ -2,6 +2,7 @@
     -fx-background-position: center center;
     -fx-background-repeat: no-repeat;
     -fx-background-size: 180% 100%;
+    -fx-font-family: "Friz Quadrata";
 }
 
 .tab-pane .tab-header-area .tab-header-background {

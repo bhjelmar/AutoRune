@@ -28,8 +28,7 @@ public class Main extends Application {
 			BaseController.setDebug(true);
 		}
 		// bug report? Font::loadFont is unable to handle URLs with spaces...
-		Font.loadFont(Main.class.getResource("/fonts/FrizQuadrataRegular.ttf").toExternalForm(), 18);
-		System.out.println(Font.getFamilies().stream().filter(e -> e.contains("Friz")).findFirst());
+		Font.loadFont(Main.class.getResource("/fonts/Friz-Quadrata-Regular.ttf").toExternalForm(), 18);
 		configureUnirest();
 		launch();
 	}
