@@ -13,9 +13,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,7 @@ public class RunesAPI {
 		// op.gg will autocomplete the url for us but it takes ages to load... if we do every lookup for a specific page, the load times are way faster
 		AtomicReference<String> url = new AtomicReference<>(API.OPGG_ROLES.getPath().replaceAll("\\{championName}", champion.getName()).replaceAll("\\{role}", "mid"));
 
-		ConcurrentHashMap<String, List<RuneSelection>> roleRuneSelectionMap = new ConcurrentHashMap<>();
+		Map<String, List<RuneSelection>> roleRuneSelectionMap = new HashMap<>();
 		log.debug("Getting Champion role info from {}", url.get().substring(0, url.get().indexOf("/mid/rune")));
 		Document initialDoc = Jsoup.connect(url.get()).timeout(0).get();
 		log.debug("Finished fetch");
@@ -44,7 +44,7 @@ public class RunesAPI {
 		List<String> roles = initialDoc.getElementsByClass("champion-stats-position").first().getElementsByClass("champion-stats-header__position").stream()
 			.map(e -> e.attr("data-position"))
 			.collect(Collectors.toList());
-		roles.parallelStream().forEach(role -> {
+		roles.forEach(role -> {
 			url.set(API.OPGG_RUNES.getPath().replaceAll("\\{championId}", String.valueOf(champion.getChampionId())).replaceAll("\\{role}", role));
 			log.info("Getting Champion Rune info from {}", url);
 

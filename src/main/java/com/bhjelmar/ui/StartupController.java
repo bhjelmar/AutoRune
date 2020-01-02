@@ -247,7 +247,7 @@ public class StartupController extends BaseController {
 					}
 					if (champion != null) {
 						continueLooping = false;
-						logToWindowConsole("Locked in  " + champion.getName() + ".", Severity.INFO);
+						logToWindowConsole("Locked in " + champion.getName() + ".", Severity.INFO);
 						logToWindowConsole("Getting rune information from op.gg", Severity.INFO);
 
 						Map<String, List<RuneSelection>> runesMap = RunesAPI.getOPGGRunes(champion);
